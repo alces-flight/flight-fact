@@ -32,11 +32,9 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 
 gem 'activesupport'
 gem 'commander-openflighthpc', '> 2'
-gem 'filesize'
 gem 'hashie'
+gem 'output_mode'
 gem 'simple_jsonapi_client'
-gem 'tty-editor'
-gem 'tty-table'
 gem 'tty-prompt'
 gem 'xdg'
 
