@@ -30,12 +30,14 @@ require_relative 'command'
 module FlightMetadata
   module Commands
     def self.constantize(sym)
-      sym.to_s.dup.split(/[-_]/).map! { |c| c[0] = c[0].upcase }.join
+      sym.to_s.dup.split(/[-_]/).each { |c| c[0] = c[0].upcase }.join
     end
 
     def self.build(s, *args, **opts)
-      self.const_get(constantize(s)).new(*args, **opts)
+      const = constantize(s)
+      self.const_get(const).new(*args, **opts)
     rescue NameError
+      Config::CACHE.logger.fatal "Command class not defined: #{self}::#{const}"
       raise InternalError, 'Command Not Found!'
     end
 
