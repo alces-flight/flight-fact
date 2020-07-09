@@ -26,9 +26,12 @@
 # https://github.com/alces-flight/alces-flight/flight-metadata
 #==============================================================================
 
+require 'faraday'
+require 'faraday_middleware'
+
 module FlightMetadata
   class CredentialsConfig < ConfigBase
-    config :component_id
+    config :asset_id, required: true
     config :jwt
 
     # Quick check that can be done on config load
@@ -58,17 +61,17 @@ module FlightMetadata
       }
     end
 
-    def url
-      File.join(Config::CACHE.base_url!, Config::CACHE.api_prefix!)
-    end
-
-    def connection
-      @connection ||= Faraday.new(url: url, headers: headers) do |c|
+    ##
+    # Create a new connection to the api
+    def build_connection
+      url = File.join(Config::CACHE.base_url!, Config::CACHE.api_prefix!)
+      Faraday.new(url: url, headers: headers) do |c|
+        c.response :json, :content_type => /\bjson$/
+        c.use Faraday::Response::RaiseError
         c.use Faraday::Response::Logger, Config::CACHE.logger, { bodies: true } do |l|
           l.filter(/(Authorization:)(.*)/, '\1 [REDACTED]')
         end
         c.request :json
-        c.response :json, :content_type => /\bjson$/
         c.adapter :net_http
       end
     end

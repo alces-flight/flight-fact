@@ -27,10 +27,10 @@
 
 require 'active_support/callbacks'
 require 'active_support/concern'
+require 'active_support/core_ext/module/delegation'
 
 require_relative 'errors'
 require_relative 'config'
-require_relative 'records'
 
 module FlightMetadata
   class Command
@@ -78,27 +78,39 @@ module FlightMetadata
 
     ##
     # The main runner method that preforms the action
-    # NOTE: This method must not print to StandardOut
-    #       Printing to stdout should be controlled with callbacks
     def run
     end
 
     ##
-    # Creates a prompt object for interactive commands
-    def prompt
-      @prompt ||= TTY::Prompt.new
-    end
-
-    ##
-    # Caches the credentials object
+    # @return [Flight::Metadata::CredentialsConfig] the cached credentials object
     def credentials
       @credentials ||= Config::CACHE.load_credentials
     end
 
     ##
-    # Faraday Connection To the remote service
+    # @return [String] fetches the asset id associated with the command
+    def request_asset_id
+      # TODO: Fetch id associated with --asset
+      credentials.asset_id
+    end
+
+    ##
+    # @return [Faraday::Connection] the cached connection to the api
     def connection
-      credentials.connection
+      @connection ||= credentials.build_connection
+    end
+
+    ##
+    # Finds the metadata associated with the (see #connection)
+    # @return [Hash] the metadata associated with the asset
+    # @raises InternalError the asset is missing or the connection has been missed configured
+    def request_metadata
+      connection.get(File.join('assets', request_asset_id, 'metadata')).body
+    rescue Faraday::ResourceNotFound
+      raise InternalError, <<~ERROR.chomp
+        Could not find the specified asset by its identifier
+        Please contact your system administrator for futher assistance
+      ERROR
     end
   end
 end

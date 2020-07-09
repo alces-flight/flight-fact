@@ -15,10 +15,10 @@ GEM
       slop (~> 4.8)
     concurrent-ruby (1.1.6)
     equatable (0.6.1)
-    faraday (0.17.3)
+    faraday (1.0.1)
       multipart-post (>= 1.2, < 3)
-    faraday_middleware (0.14.0)
-      faraday (>= 0.7.4, < 1.0)
+    faraday_middleware (1.0.0)
+      faraday (~> 1.0)
     hashie (4.1.0)
     highline (2.0.3)
     i18n (1.8.3)
@@ -41,9 +41,6 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    simple_jsonapi_client (0.2.4)
-      faraday (~> 0.12)
-      faraday_middleware (~> 0.11)
     slop (4.8.1)
     strings (0.1.8)
       strings-ansi (~> 0.1)
@@ -82,11 +79,12 @@ PLATFORMS
 DEPENDENCIES
   activesupport
   commander-openflighthpc (> 2)
+  faraday
+  faraday_middleware
   hashie
   output_mode
   pry
   pry-byebug
-  simple_jsonapi_client
   tty-prompt
   xdg
 

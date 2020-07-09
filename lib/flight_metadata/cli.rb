@@ -78,7 +78,10 @@ module FlightMetadata
 
     if Config::CACHE.development?
       create_command 'console' do |c|
-        c.action { Pry.start }
+        c.action do |args, opts|
+          require_relative 'commands'
+          Command.new(*args, **opts.to_h).pry
+        end
       end
     end
   end

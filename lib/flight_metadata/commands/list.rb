@@ -28,6 +28,14 @@
 module FlightMetadata
   module Commands
     class List < Command
+      def run
+        data = request_metadata
+        if data.empty?
+          $stderr.puts 'No metadata entries found!'
+        else
+          puts data
+        end
+      end
     end
   end
 end
