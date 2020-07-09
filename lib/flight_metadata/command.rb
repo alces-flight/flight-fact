@@ -101,7 +101,7 @@ module FlightMetadata
     def request_metadata
       connection.get(relative_url).body
     rescue Faraday::ResourceNotFound
-      raise_missing_asset_internal_error
+      raise_missing_asset
     end
 
     ##
@@ -119,7 +119,15 @@ module FlightMetadata
     def request_set_entry(key, value)
       connection.put(relative_url(key), JSON.dump(value))
     rescue Faraday::ResourceNotFound
-      raise_missing_asset_internal_error
+      raise_missing_asset
+    end
+
+    ##
+    # Permanently unset an entry
+    def request_delete_entry(key)
+      connection.delete(relative_url(key))
+    rescue Faraday::ResourceNotFound
+      raise_missing_asset
     end
 
     def raise_missing_asset_internal_error
