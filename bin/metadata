@@ -47,5 +47,5 @@ end
 
 # Builds and runs the CLI
 require_relative '../lib/flight_metadata/cli'
-FlightMetadata::CLI.run!(*args)
+FlightMetadata::CLI.run!(*ARGV)
 
