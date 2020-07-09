@@ -1,7 +1,7 @@
 #==============================================================================
 # Copyright (C) 2019-present Alces Flight Ltd.
 #
-# This file is part of Flight Metadata.
+# This file is part of Flight Fact.
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which is available at
@@ -9,7 +9,7 @@
 # terms made available by Alces Flight Ltd - please direct inquiries
 # about licensing to licensing@alces-flight.com.
 #
-# Flight Metadata is distributed in the hope that it will be useful, but
+# Flight Fact is distributed in the hope that it will be useful, but
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
 # IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
 # OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
@@ -17,12 +17,12 @@
 # details.
 #
 # You should have received a copy of the Eclipse Public License 2.0
-# along with Flight Metadata. If not, see:
+# along with Flight Fact. If not, see:
 #
 #  https://opensource.org/licenses/EPL-2.0
 #
-# For more information on Flight Metadata, please visit:
-# https://github.com/alces-flight/alces-flight/flight-metadata
+# For more information on Flight Fact, please visit:
+# https://github.com/alces-flight/alces-flight/flight-fact
 #==============================================================================
 
 require 'active_support/concern'
@@ -32,7 +32,7 @@ require 'json'
 require_relative 'errors'
 require_relative 'config'
 
-module FlightMetadata
+module FlightFact
   class Command
     def self.define_args(*names)
       names.each_with_index do |name, index|
@@ -73,7 +73,7 @@ module FlightMetadata
     end
 
     ##
-    # @return [Flight::Metadata::CredentialsConfig] the cached credentials object
+    # @return [Flight::Fact::CredentialsConfig] the cached credentials object
     def credentials
       @credentials ||= Config::CACHE.load_credentials
     end
@@ -95,10 +95,10 @@ module FlightMetadata
     end
 
     ##
-    # Finds the metadata associated with the (see #connection)
-    # @return [Hash] the metadata associated with the asset
+    # Finds the fact associated with the (see #connection)
+    # @return [Hash] the fact associated with the asset
     # @raises InternalError the asset is missing or the connection has been missed configured
-    def request_metadata
+    def request_fact
       connection.get(relative_url).body
     rescue Faraday::ResourceNotFound
       raise_missing_asset
@@ -130,7 +130,7 @@ module FlightMetadata
       raise_missing_asset
     end
 
-    def raise_missing_asset_internal_error
+    def raise_missing_asset
       raise InternalError, <<~ERROR.chomp
         Could not find the specified asset by its identifier
         Please contact your system administrator for futher assistance

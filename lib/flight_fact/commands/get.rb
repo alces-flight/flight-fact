@@ -1,8 +1,7 @@
-#!/usr/bin/env ruby
 #==============================================================================
 # Copyright (C) 2019-present Alces Flight Ltd.
 #
-# This file is part of Flight Metadata.
+# This file is part of Flight Fact.
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which is available at
@@ -10,7 +9,7 @@
 # terms made available by Alces Flight Ltd - please direct inquiries
 # about licensing to licensing@alces-flight.com.
 #
-# Flight Metadata is distributed in the hope that it will be useful, but
+# Flight Fact is distributed in the hope that it will be useful, but
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
 # IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
 # OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
@@ -18,34 +17,21 @@
 # details.
 #
 # You should have received a copy of the Eclipse Public License 2.0
-# along with Flight Metadata. If not, see:
+# along with Flight Fact. If not, see:
 #
 #  https://opensource.org/licenses/EPL-2.0
 #
-# For more information on Flight Metadata, please visit:
-# https://github.com/alces-flight/alces-flight/flight-metadata
+# For more information on Flight Fact, please visit:
+# https://github.com/alces-flight/alces-flight/flight-fact
 #==============================================================================
 
-# Sets up bundler
-ENV['BUNDLE_GEMFILE'] ||= File.join(__dir__, '../Gemfile')
-require 'rubygems'
-require 'bundler'
-Bundler.setup(:default)
-
-# Enables the development mode if specified by the config
-require_relative '../lib/flight_metadata/config'
-if FlightMetadata::Config::CACHE.development?
-  begin
-    Bundler.setup(:default, :development)
-    require 'pry'
-    require 'pry-byebug'
-  rescue StandardError, LoadError
-    Bundler.setup(:default)
-    $stderr.puts "An error occurred when enabling development mode!"
+module FlightFact
+  module Commands
+    class Get < Command
+      def run
+        puts request_get_entry(*args)
+      end
+    end
   end
 end
-
-# Builds and runs the CLI
-require_relative '../lib/flight_metadata/cli'
-FlightMetadata::CLI.run!(*ARGV)
 
