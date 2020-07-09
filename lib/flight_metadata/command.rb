@@ -25,33 +25,22 @@
 # https://github.com/alces-flight/alces-flight/flight-metadata
 #==============================================================================
 
-require 'active_support/callbacks'
 require 'active_support/concern'
 require 'active_support/core_ext/module/delegation'
+require 'json'
 
 require_relative 'errors'
 require_relative 'config'
 
 module FlightMetadata
   class Command
-    include ActiveSupport::Callbacks
-
-    define_callbacks :run
-
-    CALLBACK_FILTER_TYPES.each do |type|
-      define_singleton_method(type) do |**opts, &block|
-        do_block = opts.delete(:do)
-        set_callback(:run, type, **opts, &(do_block || block))
-      end
-    end
-
-    attr_reader :args, :opts
-
     def self.define_args(*names)
       names.each_with_index do |name, index|
         define_method(name) { args[index] }
       end
     end
+
+    attr_reader :args, :opts
 
     def initialize(*args, **opts)
       @args = args.dup
@@ -63,7 +52,14 @@ module FlightMetadata
     #
     def run!
       Config::CACHE.logger.info "Running: #{self.class}"
-      run_callbacks(:run) { run }
+      begin
+        run
+      rescue Faraday::ResourceNotFound
+        raise InternalError, <<~ERROR.chomp
+          Could not find the specified asset by its identifier
+          Please contact your system administrator for futher assistance
+        ERROR
+      end
       Config::CACHE.logger.info 'Exited: 0'
     rescue => e
       if e.respond_to? :exit_code
@@ -88,9 +84,8 @@ module FlightMetadata
     end
 
     ##
-    # @return [String] fetches the asset id associated with the command
-    def request_asset_id
-      # TODO: Fetch id associated with --asset
+    # @return [String] the asset id associated with the command
+    def asset_id
       credentials.asset_id
     end
 
@@ -100,17 +95,22 @@ module FlightMetadata
       @connection ||= credentials.build_connection
     end
 
+    def relative_url(*a)
+      File.join('assets', asset_id, 'metadata', *a)
+    end
+
     ##
     # Finds the metadata associated with the (see #connection)
     # @return [Hash] the metadata associated with the asset
     # @raises InternalError the asset is missing or the connection has been missed configured
     def request_metadata
-      connection.get(File.join('assets', request_asset_id, 'metadata')).body
-    rescue Faraday::ResourceNotFound
-      raise InternalError, <<~ERROR.chomp
-        Could not find the specified asset by its identifier
-        Please contact your system administrator for futher assistance
-      ERROR
+      connection.get(relative_url).body
+    end
+
+    ##
+    # Sets a key-value pair against the asset
+    def request_set_entry(key, value)
+      connection.put(relative_url(key), JSON.dump(value))
     end
   end
 end

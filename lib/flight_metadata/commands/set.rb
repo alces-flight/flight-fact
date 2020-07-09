@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2019-present Alces Flight Ltd.
 #
@@ -26,53 +25,11 @@
 # https://github.com/alces-flight/alces-flight/flight-metadata
 #==============================================================================
 
-require 'faraday'
-require 'faraday_middleware'
-
 module FlightMetadata
-  class CredentialsConfig < ConfigBase
-    config :asset_id, required: true
-    config :jwt
-
-    # Quick check that can be done on config load
-    def validate
-      @validate = component_id? && jwt?
-    end
-
-    ##
-    # NOTE: Eventually make network request here
-    def validate!
-      validate
-    end
-
-    def valid?
-      if @validate.nil?
-        validate
-      else
-        @validate ? true : false
-      end
-    end
-
-    def headers
-      {
-        'Accept' => 'application/json',
-        'Content-Type' => 'application/json',
-        'Authorization' => "Bearer #{jwt!}"
-      }
-    end
-
-    ##
-    # Create a new connection to the api
-    def build_connection
-      url = File.join(Config::CACHE.base_url!, Config::CACHE.api_prefix!)
-      Faraday.new(url: url, headers: headers) do |c|
-        c.response :json, :content_type => /\bjson$/
-        c.use Faraday::Response::RaiseError
-        c.use Faraday::Response::Logger, Config::CACHE.logger, { bodies: true } do |l|
-          l.filter(/(Authorization:)(.*)/, '\1 [REDACTED]')
-        end
-        c.request :json
-        c.adapter :net_http
+  module Commands
+    class Set < Command
+      def run
+        request_set_entry(*args)
       end
     end
   end
