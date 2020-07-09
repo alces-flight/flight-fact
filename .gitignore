@@ -1,0 +1,4 @@
+etc/config.*
+var
+.bundle/*
+vendor
