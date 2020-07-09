@@ -25,6 +25,8 @@
 # https://github.com/alces-flight/alces-flight/flight-metadata
 #==============================================================================
 
+require 'simple_jsonapi_client'
+
 module FlightMetadata
   class BaseRecord < SimpleJSONAPIClient::Base
     # Defines a method to index a particular URL, very few protections are in

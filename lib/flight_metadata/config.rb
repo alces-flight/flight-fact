@@ -79,7 +79,7 @@ module FlightMetadata
   # Define the reference and config paths. The config_path if dynamic
   # allowing it to be moved
   REFERENCE_PATH = File.expand_path('../../etc/config.reference', __dir__)
-  CONFIG_PATH ||= File.expand_path('../../etc/config.yaml', __dir__)
+  CONFIG_PATH = File.expand_path('../../etc/config.yaml', __dir__)
   class Config < ConfigBase
     config :development
 

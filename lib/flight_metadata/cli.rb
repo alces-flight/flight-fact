@@ -76,6 +76,10 @@ module FlightMetadata
       c.summary = 'Permanentely remove a metadata entry'
     end
 
-    create_command 'console' if Config::CACHE.development?
+    if Config::CACHE.development?
+      create_command 'console' do |c|
+        c.action { Pry.start }
+      end
+    end
   end
 end
