@@ -60,10 +60,21 @@ module FlightMetadata
       Non-interactive terminals follow the same output layouts and are always verbose.
     DESC
 
-    alias_regex = /-metadatas?\Z/
-    commands.keys
-            .select { |c| c.match?(alias_regex) }
-            .each { |c| alias_command c.sub(alias_regex, ''), c }
+    create_command('list') do |c|
+      c.summary = 'View all metadata entries'
+    end
+
+    create_command('get', 'KEY') do |c|
+      c.summary = 'View a metadata entry'
+    end
+
+    create_command('set', 'KEY VALUE') do |c|
+      c.summary = 'Set a metadata entry'
+    end
+
+    create_command('delete', 'KEY') do |c|
+      c.summary = 'Permanentely remove a metadata entry'
+    end
 
     create_command 'console' if Config::CACHE.development?
   end
