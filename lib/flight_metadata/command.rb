@@ -54,11 +54,6 @@ module FlightMetadata
       Config::CACHE.logger.info "Running: #{self.class}"
       begin
         run
-      rescue Faraday::ResourceNotFound
-        raise InternalError, <<~ERROR.chomp
-          Could not find the specified asset by its identifier
-          Please contact your system administrator for futher assistance
-        ERROR
       end
       Config::CACHE.logger.info 'Exited: 0'
     rescue => e
@@ -105,12 +100,33 @@ module FlightMetadata
     # @raises InternalError the asset is missing or the connection has been missed configured
     def request_metadata
       connection.get(relative_url).body
+    rescue Faraday::ResourceNotFound
+      raise_missing_asset_internal_error
+    end
+
+    ##
+    # Returns an entry via it's key
+    def request_get_entry(key)
+      connection.get(relative_url(key)).body
+    rescue Faraday::ResourceNotFound
+      raise MissingError, <<~ERROR.chomp
+        Could not find an entry for: #{key}
+      ERROR
     end
 
     ##
     # Sets a key-value pair against the asset
     def request_set_entry(key, value)
       connection.put(relative_url(key), JSON.dump(value))
+    rescue Faraday::ResourceNotFound
+      raise_missing_asset_internal_error
+    end
+
+    def raise_missing_asset_internal_error
+      raise InternalError, <<~ERROR.chomp
+        Could not find the specified asset by its identifier
+        Please contact your system administrator for futher assistance
+      ERROR
     end
   end
 end
