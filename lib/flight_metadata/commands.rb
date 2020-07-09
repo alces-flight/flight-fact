@@ -29,18 +29,18 @@ require_relative 'command'
 
 module FlightMetadata
   module Commands
-    Dir.glob(File.expand_path('commands/*.rb', __dir__)).each do |file|
-      autoload File.basename(file, '.*').captilalize.to_sym, file
+    def self.constantize(sym)
+      sym.to_s.dup.split(/[-_]/).map! { |c| c[0] = c[0].upcase }.join
     end
 
-    class << self
-      def build(s, *args, **opts)
-        name = s.to_s.dup.split('-').map { |c| c[0] = c[0].upcase; c }.join
-        klass = self.const_get(name)
-        klass.new(*args, **opts)
-      rescue NameError
-        raise InternalError, 'Command Not Found!'
-      end
+    def self.build(s, *args, **opts)
+      self.const_get(constantize(s)).new(*args, **opts)
+    rescue NameError
+      raise InternalError, 'Command Not Found!'
+    end
+
+    Dir.glob(File.expand_path('commands/*.rb', __dir__)).each do |file|
+      autoload constantize(File.basename(file, '.*')), file
     end
   end
 end
