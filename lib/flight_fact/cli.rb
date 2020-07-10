@@ -52,15 +52,6 @@ module FlightFact
     program :description, 'Manage Alces Flight Center Assets'
     program :help_paging, false
 
-    # create_command 'configure' do |c|
-    #   c.summary = 'Configure the application'
-    # end
-
-    global_slop.bool '--verbose', <<~DESC.chomp
-      Display the full details when used in an interactive terminal.
-      Non-interactive terminals follow the same output layouts and are always verbose.
-    DESC
-
     create_command('configure', asset: false) do |c|
       c.summary = 'Initial application setup'
     end
