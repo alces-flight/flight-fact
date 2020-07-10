@@ -82,10 +82,17 @@ module FlightFact
     ##
     # @return [String] the asset id associated with the command
     def asset_id
-      if opts.asset
+      @asset_id ||= if opts.asset
         fetch_asset_id_by_name(opts.asset)
+      elsif id = credentials.asset_id
+        id
       else
-        credentials.asset_id
+        raise InputError, <<~ERROR.chomp
+          This installation has not been configured with a default asset.
+          Please do one of the following:
+           * Re-run the command with: --asset NAME
+           * Or configure the default asset: #{Config::CACHE.app_name} configure
+        ERROR
       end
     end
 
