@@ -35,10 +35,14 @@ module FlightFact
     property :jwt
 
     def headers
+      raise CredentialsError, <<~ERROR.chomp unless jwt
+        The API token has not been set! Please run the following to set it:
+        #{Config::CACHE.app_name} configure
+      ERROR
       {
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
-        'Authorization' => "Bearer #{jwt!}"
+        'Authorization' => "Bearer #{jwt}"
       }
     end
 

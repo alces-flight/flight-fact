@@ -31,6 +31,7 @@ module FlightFact
   module Commands
     class Configure < Command
       def run
+        raise InteractiveOnly unless $stdout.tty?
         configure_jwt
         configure_default_asset
         File.write Config::CACHE.credentials_path, YAML.dump(data.to_h)

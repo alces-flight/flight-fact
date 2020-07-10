@@ -31,7 +31,7 @@
 # Application Name
 # The name of the application to use in the help text
 # ==============================================================================
-config :app_name, default: 'flight-fact'
+config :app_name, default: 'flight fact'
 
 # ==============================================================================
 # API Base URL
