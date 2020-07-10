@@ -32,10 +32,11 @@ module FlightFact
   class CLI
     extend Commander::CLI
 
-    def self.create_command(name, args_str = '')
+    def self.create_command(name, args_str = '', asset: true)
       command(name) do |c|
         c.syntax = "#{program :name} #{name} #{args_str}"
         c.hidden = true if name.split.length > 1
+        c.slop.string '--asset', 'Run the command for an abritrary asset', meta: 'ASSET' if asset
 
         c.action do |args, opts|
           require_relative 'commands'
@@ -60,7 +61,7 @@ module FlightFact
       Non-interactive terminals follow the same output layouts and are always verbose.
     DESC
 
-    create_command('configure') do |c|
+    create_command('configure', asset: false) do |c|
       c.summary = 'Initial application setup'
     end
 

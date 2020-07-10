@@ -67,8 +67,8 @@ config :config_path, default: "#{xdg.config_home}/flight/fact"
 # The base command used to execute flight-asset system calls
 #
 # NOTE: For security reasons, the first part of the command must be an absolute
-# path to a script. This allows the underlining code to by-pass a shell which
-# mitigates against injection attacks
+# path to a script. This allows the underlining code to execute the script
+# directly (without a shell). This mitigates the risk of injection attacks
 # ==============================================================================
 config :asset_command, default: '/opt/flight/bin/flexec flight asset'
 

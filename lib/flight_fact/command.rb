@@ -83,7 +83,7 @@ module FlightFact
     # @return [String] the asset id associated with the command
     def asset_id
       if opts.asset
-        raise NotImplementedError
+        fetch_asset_id_by_name(opts.asset)
       else
         credentials.asset_id
       end
