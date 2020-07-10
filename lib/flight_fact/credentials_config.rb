@@ -30,28 +30,9 @@ require 'faraday'
 require 'faraday_middleware'
 
 module FlightFact
-  class CredentialsConfig < ConfigBase
-    config :asset_id
-    config :jwt
-
-    # Quick check that can be done on config load
-    def validate
-      @validate = component_id? && jwt?
-    end
-
-    ##
-    # NOTE: Eventually make network request here
-    def validate!
-      validate
-    end
-
-    def valid?
-      if @validate.nil?
-        validate
-      else
-        @validate ? true : false
-      end
-    end
+  class CredentialsConfig < Hashie::Dash
+    property :asset_id
+    property :jwt
 
     def headers
       {

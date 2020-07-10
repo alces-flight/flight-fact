@@ -26,18 +26,18 @@
 # https://github.com/alces-flight/alces-flight/flight-fact
 #==============================================================================
 
-#
-# NOTE: This file MUST NOT have external GEM dependencies has it will be loaded
-# before Bundler has been setup. As such any advanced config setup needs to be
-# implemented manually
-#
 require 'yaml'
 require 'logger'
 require 'hashie'
 require 'xdg'
 
+require_relative 'credentials_config.rb'
+
 module FlightFact
-  class ConfigBase < Hashie::Trash
+  REFERENCE_PATH = File.expand_path('../../etc/config.reference', __dir__)
+  CONFIG_PATH = File.expand_path('../../etc/config.yaml', __dir__)
+
+  class Config < Hashie::Trash
     include Hashie::Extensions::IgnoreUndeclared
     include Hashie::Extensions::Dash::IndifferentAccess
 
@@ -70,18 +70,6 @@ module FlightFact
       # Define the truthiness method
       define_method(:"#{sym}?") { send(sym) ? true : false }
     end
-  end
-end
-
-require_relative 'credentials_config.rb'
-
-module FlightFact
-  # Define the reference and config paths. The config_path if dynamic
-  # allowing it to be moved
-  REFERENCE_PATH = File.expand_path('../../etc/config.reference', __dir__)
-  CONFIG_PATH = File.expand_path('../../etc/config.yaml', __dir__)
-  class Config < ConfigBase
-    config :development
 
     def self.xdg
       @xdg ||= XDG::Environment.new
@@ -90,6 +78,8 @@ module FlightFact
     def self.load_reference(path)
       self.instance_eval(File.read(path), path, 0) if File.exists?(path)
     end
+
+    config :development
 
     def credentials_path
       File.join(config_path, 'credentials.yaml')
