@@ -34,6 +34,7 @@ module FlightFact
         raise InteractiveOnly unless $stdout.tty?
         configure_jwt
         configure_default_asset
+        validate
         File.write Config::CACHE.credentials_path, YAML.dump(data.to_h)
       end
 
@@ -65,6 +66,24 @@ module FlightFact
 
       def data
         @data ||= Config::CACHE.load_credentials
+      end
+
+      # NOTE: This validation could fail for rather complex reasons. The request
+      # to `flight asset` uses a different set of configurations which opens the
+      # possibility for inconsistencies (e.g. base_url, expired tokens etc..)
+      def validate
+        # Reset the connection and asset id from the credentials
+        @connection = data.build_connection
+        @asset_id = data.asset_id
+        request_fact
+      rescue InternalError
+        raise InputError, <<~ERROR.chomp
+          Could not locate the asset! Please check the following:
+           * Ensure the asset actually exists, and
+           * Regenerate the API token as it may have expired.
+
+          Please contact your system administrator if this error persists
+        ERROR
       end
 
       def mask(jwt)
