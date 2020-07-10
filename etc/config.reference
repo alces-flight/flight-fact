@@ -1,0 +1,94 @@
+# frozen_string_literal: true
+# vim: set filetype=ruby:
+#==============================================================================
+# Copyright (C) 2019-present Alces Flight Ltd.
+#
+# This file is part of Flight Metadata.
+#
+# This program and the accompanying materials are made available under
+# the terms of the Eclipse Public License 2.0 which is available at
+# <https://www.eclipse.org/legal/epl-2.0>, or alternative license
+# terms made available by Alces Flight Ltd - please direct inquiries
+# about licensing to licensing@alces-flight.com.
+#
+# Flight Metadata is distributed in the hope that it will be useful, but
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
+# OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+# PARTICULAR PURPOSE. See the Eclipse Public License 2.0 for more
+# details.
+#
+# You should have received a copy of the Eclipse Public License 2.0
+# along with Flight Metadata. If not, see:
+#
+#  https://opensource.org/licenses/EPL-2.0
+#
+# For more information on Flight Metadata, please visit:
+# https://github.com/alces-flight/alces-flight/flight-metadata-cli
+#==============================================================================
+
+# ==============================================================================
+# Application Name
+# The name of the application to use in the help text
+# ==============================================================================
+config :app_name, default: 'flight-fact'
+
+# ==============================================================================
+# API Base URL
+# Specify the location where the API server is being hosted. The API version
+# prefix will be appended to the base url. The all most always means the version
+# should not be included in the URL
+# ==============================================================================
+config :base_url, default: 'https://center.alces-flight.com/api'
+
+# ==============================================================================
+# Version Prefix
+# The "version tag" that is appended to base_url. This application is intended
+# to run with a version one api. The base url will be use alone if the prefix is
+# set to empty string.
+# ==============================================================================
+config :api_prefix, default: 'v1'
+
+# ==============================================================================
+# Data Path
+# A directory in which user specific data can be stored.
+# ==============================================================================
+config :data_path, default: "#{xdg.data_home}/flight/fact"
+
+# ==============================================================================
+# Config Path
+# A directory in which user specific configuration can be stored (e.g. access
+# token).
+# ==============================================================================
+config :config_path, default: "#{xdg.config_home}/flight/fact"
+
+# ==============================================================================
+# Flight Asset Command
+# The base command used to execute flight-asset system calls
+#
+# NOTE: For security reasons, the first part of the command must be an absolute
+# path to a script. This allows the underlining code to by-pass a shell which
+# mitigates against injection attacks
+# ==============================================================================
+config :asset_command, default: '/opt/flight/bin/flexec flight asset'
+
+# ==============================================================================
+# Log Path
+# The file the logger will write to. It will write to standard error when set to
+# empty string.
+# ==============================================================================
+config :log_path, default: "#{xdg.cache_home}/flight/log/share/fact.log",
+                  required: false
+
+# ==============================================================================
+# Log level
+# Set at which severity the application will log
+# Valid levels: 'disabled', 'fatal', 'error', 'warn', 'info', 'debug'
+# ==============================================================================
+config :log_level, default: 'error'
+
+# ==============================================================================
+# Page Size
+# The page size to use when indexing
+# ==============================================================================
+config :page_size, default: 100

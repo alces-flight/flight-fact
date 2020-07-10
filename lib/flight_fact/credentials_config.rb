@@ -31,7 +31,7 @@ require 'faraday_middleware'
 
 module FlightFact
   class CredentialsConfig < ConfigBase
-    config :asset_id, required: true
+    config :asset_id
     config :jwt
 
     # Quick check that can be done on config load

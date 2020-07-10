@@ -33,6 +33,7 @@ module FlightFact
       def run
         configure_jwt
         configure_default_asset
+        File.write Config::CACHE.credentials_path, YAML.dump(data.to_h)
       end
 
       def configure_jwt
