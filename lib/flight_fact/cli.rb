@@ -60,6 +60,10 @@ module FlightFact
       Non-interactive terminals follow the same output layouts and are always verbose.
     DESC
 
+    create_command('configure') do |c|
+      c.summary = 'Initial application setup'
+    end
+
     create_command('list') do |c|
       c.summary = 'View all fact entries'
     end
