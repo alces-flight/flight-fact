@@ -25,6 +25,10 @@
 # https://github.com/alces-flight/alces-flight/flight-fact
 #==============================================================================
 
+require 'paint'
+require 'csv'
+require 'stringio'
+
 module FlightFact
   module Commands
     class List < Command
@@ -33,7 +37,33 @@ module FlightFact
         if data.empty?
           $stderr.puts 'No fact entries found!'
         else
-          puts data
+          puts render(data)
+        end
+      end
+
+      def render(data)
+        if $stdout.tty?
+          # Determines the max width
+          max = data.max { |h, v| h.length }[0].length
+
+          # Pads the results
+          padded = data.map do |header, value|
+            ["#{' ' * (max - header.length)}#{header}", value]
+          end
+
+          # Colorizes the results
+          padded.map do |key, raw|
+            header = Paint[key + ':', '#2794d8']
+            value = Paint[raw, :green]
+            "#{header} #{value}"
+          end.join("\n")
+        else
+          io = StringIO.new
+          csv = CSV.new(io, col_sep: "\t")
+          csv << data.keys
+          csv << data.values
+          io.rewind
+          io.read
         end
       end
     end
