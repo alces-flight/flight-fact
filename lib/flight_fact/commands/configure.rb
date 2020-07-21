@@ -106,7 +106,7 @@ module FlightFact
       def validate
         # Reset to a new credentials object
         @credentials = CredentialsConfig.new(credentials.to_h)
-        request_fact
+        request_fact if credentials.resolve_asset_id
       rescue InternalError
         raise InputError, <<~ERROR.chomp
           Could not locate the asset! Please check the following:
