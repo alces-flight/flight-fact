@@ -34,10 +34,25 @@ module FlightFact
     end
 
     def self.build(s, *args, **opts)
-      const = constantize(s)
-      self.const_get(const).new(*args, **opts)
+      const_string = constantize(s)
+      const_get(const_string).new(*args, **opts).tap do |cmd|
+        unless const_string == 'Configure'
+          # Errors without a web token
+          raise CredentialsError, <<~ERROR.chomp if cmd.credentials.jwt?
+            The API access token has not been set! Please see:
+            #{Config::CACHE.app_name} configure
+          ERROR
+
+          if opts[:asset]
+            # NOOP - Skip resolution check if an asset has been provided
+          elsif cmd.credentials.resolve?
+            # Saves the credentials if they needed resolving
+            cmd.save_credentials
+          end
+        end
+      end
     rescue NameError
-      Config::CACHE.logger.fatal "Command class not defined: #{self}::#{const}"
+      Config::CACHE.logger.fatal "Command class not defined (maybe?): #{self}::#{const_string}"
       raise InternalError, 'Command Not Found!'
     end
 

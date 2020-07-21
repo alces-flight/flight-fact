@@ -35,28 +35,31 @@ module FlightFact
         configure_jwt
         configure_default_asset
         validate
-        File.write Config::CACHE.credentials_path, YAML.dump(data.to_h)
+        save_credentials
       end
 
       def configure_jwt
-        old_jwt_mask = mask(data.jwt)
-        opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if data.jwt }
+        old_jwt_mask = mask(credentials.jwt)
+        opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if credentials.jwt }
         new_jwt = prompt.ask 'Flight Center API token:', **opts
-        data.jwt = new_jwt unless new_jwt == old_jwt_mask
+        credentials.jwt = new_jwt unless new_jwt == old_jwt_mask
       end
 
       def configure_default_asset
-        if prompt.yes? "Define the default asset by ID?", default: (data.asset_id ? true : false)
+        if prompt.yes? "Define the default asset by ID?", default: (credentials.asset_id ? true : false)
           opts = { requried: true }.tap do |o|
-            o[:default] = data.asset_id if data.asset_id
+            o[:default] = credentials.asset_id if credentials.asset_id
           end
-          data.asset_id = prompt.ask 'Default Asset ID:', **opts
+          credentials.asset_id = prompt.ask 'Default Asset ID:', **opts
+          credentials.unresolved_name = nil
         elsif prompt.yes? "Define the default asset by name?", default: true
-          name = prompt.ask "Default Asset Name:", default: `hostname`.chomp
-          data.asset_id = fetch_asset_id_by_name(name)
-        elsif data.asset_id
+          name = prompt.ask "Default Asset Name:", default: `hostname --short`.chomp
+          credentials.unresolved_name = name
+          credentials.asset_id = nil
+        elsif credentials.asset_id
           $stderr.puts 'Removing previously set default asset'
-          data.asset_id = nil
+          credentials.asset_id = nil
+          credentials.unresolved_name = nil
         end
       end
 
@@ -64,22 +67,17 @@ module FlightFact
         @prompt ||= TTY::Prompt.new
       end
 
-      def data
-        @data ||= Config::CACHE.load_credentials
-      end
-
       # NOTE: This validation could fail for rather complex reasons. The request
       # to `flight asset` uses a different set of configurations which opens the
       # possibility for inconsistencies (e.g. base_url, expired tokens etc..)
       def validate
-        # Reset the connection and asset id from the credentials
-        @connection = data.build_connection
-        @asset_id = data.asset_id
+        # Reset to a new credentials object
+        @credentials = CredentialsConfig.new(credentials.to_h)
         request_fact
       rescue InternalError
         raise InputError, <<~ERROR.chomp
           Could not locate the asset! Please check the following:
-           * Ensure the asset actually exists, and
+           * Ensure the asset exists, and
            * Regenerate the API token as it may have expired.
 
           Please contact your system administrator if this error persists
