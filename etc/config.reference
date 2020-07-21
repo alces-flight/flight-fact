@@ -27,11 +27,15 @@
 # https://github.com/alces-flight/alces-flight/flight-metadata-cli
 #==============================================================================
 
+def self.root_join(*a)
+  File.join(ENV.fetch('flight_ROOT', '/opt/flight'), *a)
+end
+
 # ==============================================================================
 # Application Name
 # The name of the application to use in the help text
 # ==============================================================================
-config :app_name, default: 'flight fact'
+config :app_name, default: ENV.fetch('FLIGHT_PROGRAM_NAME', 'bin/fact')
 
 # ==============================================================================
 # API Base URL
@@ -70,7 +74,7 @@ config :config_path, default: "#{xdg.config_home}/flight/fact"
 # path to a script. This allows the underlining code to execute the script
 # directly (without a shell). This mitigates the risk of injection attacks
 # ==============================================================================
-config :asset_command, default: '/opt/flight/bin/flexec flight asset'
+config :asset_command, default: "#{root_join 'bin/flexec'} flight asset"
 
 # ==============================================================================
 # Log Path
