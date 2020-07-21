@@ -31,21 +31,38 @@ module FlightFact
   module Commands
     class Configure < Command
       def run
-        raise InteractiveOnly unless $stdout.tty?
-        configure_jwt
-        configure_default_asset
-        validate
+        if options_provided?
+          raise NotImplementedError
+        elsif $stdout.tty?
+          run_prompts
+        else
+          $stderr.puts 'Nothing to do...'
+        end
+      end
+
+      def options_provided?
+        !opts.select { |_, v| v }.empty?
+      end
+
+      def prompt
+        @prompt ||= TTY::Prompt.new
+      end
+
+      def run_prompts
+        prompt_for_jwt
+        prompt_for_default_asset
+        validate if prompt.yes?('Validate credentials?', default: false)
         save_credentials
       end
 
-      def configure_jwt
+      def prompt_for_jwt
         old_jwt_mask = mask(credentials.jwt)
         opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if credentials.jwt }
         new_jwt = prompt.ask 'Flight Center API token:', **opts
         credentials.jwt = new_jwt unless new_jwt == old_jwt_mask
       end
 
-      def configure_default_asset
+      def prompt_for_default_asset
         if prompt.yes? "Define the default asset by ID?", default: (credentials.asset_id ? true : false)
           opts = { requried: true }.tap do |o|
             o[:default] = credentials.asset_id if credentials.asset_id
@@ -61,10 +78,6 @@ module FlightFact
           credentials.asset_id = nil
           credentials.unresolved_name = nil
         end
-      end
-
-      def prompt
-        @prompt ||= TTY::Prompt.new
       end
 
       # NOTE: This validation could fail for rather complex reasons. The request

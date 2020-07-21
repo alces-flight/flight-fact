@@ -104,6 +104,7 @@ module FlightFact
     def save_credentials
       path = Config::CACHE.credentials_path
       Config::CACHE.logger.info "Saving credentials: #{path}"
+      FileUtils.mkdir_p File.dirname(path)
       File.write path, YAML.dump(credentials.to_h)
     end
 
