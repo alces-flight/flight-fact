@@ -31,28 +31,44 @@ module FlightFact
   module Commands
     class Configure < Command
       def run
-        if options_provided?
-          raise NotImplementedError
-        elsif $stdout.tty?
-          run_prompts
+        process_jwt_option
+        process_asset_option
+
+        if $stdout.tty?
+          prompt_for_jwt
+          prompt_for_default_asset
+          opts.validate = prompt.yes?('Validate credentials?') unless opts.validate
+        end
+
+        validate if opts.validate
+        save_credentials
+      end
+
+      def process_jwt_option
+        return unless opts.jwt
+        if opts.jwt.empty?
+          credentials.jwt = nil
         else
-          $stderr.puts 'Nothing to do...'
+          credentials.jwt = opts.jwt
         end
       end
 
-      def options_provided?
-        !opts.select { |_, v| v }.empty?
+      def process_asset_option
+        return unless opts.asset
+        if opts.asset.empty?
+          credentials.asset_id = nil
+          credentials.unresolved_name = nil
+        elsif opts.asset && opts.id
+          credentials.asset_id = opts.asset
+          credentials.unresolved_name = nil
+        else
+          credentials.asset_id = nil
+          credentials.unresolved_name = opts.asset
+        end
       end
 
       def prompt
         @prompt ||= TTY::Prompt.new
-      end
-
-      def run_prompts
-        prompt_for_jwt
-        prompt_for_default_asset
-        validate if prompt.yes?('Validate credentials?', default: false)
-        save_credentials
       end
 
       def prompt_for_jwt
@@ -70,7 +86,7 @@ module FlightFact
           credentials.asset_id = prompt.ask 'Default Asset ID:', **opts
           credentials.unresolved_name = nil
         elsif prompt.yes? "Define the default asset by name?", default: true
-          name = prompt.ask "Default Asset Name:", default: `hostname --short`.chomp
+          name = prompt.ask "Default Asset Name:", default: default_to_asset_prompt
           credentials.unresolved_name = name
           credentials.asset_id = nil
         elsif credentials.asset_id
@@ -78,6 +94,10 @@ module FlightFact
           credentials.asset_id = nil
           credentials.unresolved_name = nil
         end
+      end
+
+      def default_to_asset_prompt
+        credentials.unresolved_name || `hostname --short`.chomp
       end
 
       # NOTE: This validation could fail for rather complex reasons. The request
