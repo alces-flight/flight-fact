@@ -38,7 +38,7 @@ module FlightFact
       const_get(const_string).new(*args, **opts).tap do |cmd|
         unless const_string == 'Configure'
           # Errors without a web token
-          raise CredentialsError, <<~ERROR.chomp if cmd.credentials.jwt?
+          raise CredentialsError, <<~ERROR.chomp unless cmd.credentials.jwt?
             The API access token has not been set! Please see:
             #{Config::CACHE.app_name} configure
           ERROR
