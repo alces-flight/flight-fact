@@ -40,7 +40,10 @@ module FlightFact
           opts.validate = prompt.yes?('Validate credentials?') unless opts.validate
         end
 
-        validate if opts.validate
+        # Reset the credentials with a copy of the original
+        @credentials = CredentialsConfig.new(credentials.to_h)
+
+        validate if opts.validate && credentials.resolve_asset_id
         save_credentials
       end
 
@@ -104,9 +107,7 @@ module FlightFact
       # to `flight asset` uses a different set of configurations which opens the
       # possibility for inconsistencies (e.g. base_url, expired tokens etc..)
       def validate
-        # Reset to a new credentials object
-        @credentials = CredentialsConfig.new(credentials.to_h)
-        request_fact if credentials.resolve_asset_id
+        request_fact
       rescue InternalError
         raise InputError, <<~ERROR.chomp
           Could not locate the asset! Please check the following:
