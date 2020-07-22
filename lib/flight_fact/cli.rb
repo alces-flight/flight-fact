@@ -36,7 +36,7 @@ module FlightFact
       command(name) do |c|
         c.syntax = "#{program :name} #{name} #{args_str}"
         c.hidden = true if name.split.length > 1
-        c.slop.string '--asset', 'Run the command for an abritrary asset', meta: 'ASSET' if asset
+        c.slop.string '--asset', 'Run the command for the given asset' if asset
 
         c.action do |args, opts|
           require_relative 'commands'
