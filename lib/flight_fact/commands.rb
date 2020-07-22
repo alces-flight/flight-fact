@@ -40,7 +40,7 @@ module FlightFact
           # Errors without a web token
           raise CredentialsError, <<~ERROR.chomp unless cmd.credentials.jwt?
             The API access token has not been set! Please see:
-            #{Config::CACHE.app_name} configure
+            #{Paint["#{Config::CACHE.app_name} configure", :yellow]}
           ERROR
 
           if opts[:asset]

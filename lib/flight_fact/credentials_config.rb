@@ -40,10 +40,6 @@ module FlightFact
     end
 
     def headers
-      raise CredentialsError, <<~ERROR.chomp unless jwt
-        The API token has not been set! Please run the following to set it:
-        #{Config::CACHE.app_name} configure
-      ERROR
       {
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
@@ -115,7 +111,7 @@ module FlightFact
         raise InternalError, <<~ERROR.chomp
           An unexpected error has occurred!
           Please ensure the following executes correctly and try again:
-          #{cmd}
+          #{Paint[cmd, :yellow]}
         ERROR
       end
     end
