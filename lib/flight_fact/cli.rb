@@ -32,11 +32,10 @@ module FlightFact
   class CLI
     extend Commander::CLI
 
-    def self.create_command(name, args_str = '', asset: true)
+    def self.create_command(name, args_str = '')
       command(name) do |c|
         c.syntax = "#{program :name} #{name} #{args_str}"
         c.hidden = true if name.split.length > 1
-        c.slop.string '--asset', 'Run the command for the given asset' if asset
 
         c.action do |args, opts|
           require_relative 'commands'
@@ -53,7 +52,7 @@ module FlightFact
     program :description, 'Manage Alces Flight Center asset metadata entries'
     program :help_paging, false
 
-    create_command('configure', asset: false) do |c|
+    create_command('configure') do |c|
       c.summary = 'Initial application setup'
       c.slop.string '--jwt', "Update the API access token. Unset with empty string: ''"
       c.slop.string '--asset', <<~DESC.chomp
