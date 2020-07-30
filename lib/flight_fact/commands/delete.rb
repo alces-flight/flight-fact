@@ -30,7 +30,6 @@ module FlightFact
     class Delete < Command
       def run
         request_delete_entry(args.first)
-        $stderr.puts "Deleted: #{args.first}"
       end
     end
   end
