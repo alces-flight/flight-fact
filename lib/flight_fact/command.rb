@@ -141,6 +141,11 @@ module FlightFact
     ##
     # Sets a key-value pair against the asset
     def request_set_entry(key, value)
+      raise InputError, <<~ERROR.chomp if value.length > Config::CACHE.max_value_length
+        The following value exceeds the maximum length: #{value[0..10]}...
+        The maximum length is #{Config::CACHE.max_value_length} characters
+      ERROR
+
       connection.put(key_url(key), JSON.dump(value))
     rescue Faraday::ResourceNotFound
       raise_missing_asset

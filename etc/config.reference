@@ -88,6 +88,15 @@ config :max_key_length, default: 1024, transform_with: ->(v) do
 end
 
 # ==============================================================================
+# Maximum Value Length
+# Set the maximum character length for a value
+# NOTE: This parameter must greater than 10 to allow for nice error handling
+# ==============================================================================
+config :max_value_length, default: 1024, transform_with: ->(v) do
+  (i = v.to_i) > 10 ? i : 11
+end
+
+# ==============================================================================
 # Log Path
 # The file the logger will write to. It will write to standard error when set to
 # empty string.
