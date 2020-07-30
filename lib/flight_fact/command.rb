@@ -25,10 +25,9 @@
 # https://github.com/alces-flight/alces-flight/flight-fact
 #==============================================================================
 
-require 'active_support/concern'
-require 'active_support/core_ext/module/delegation'
 require 'json'
 require 'open3'
+require 'paint'
 
 require 'forwardable'
 
@@ -45,11 +44,15 @@ module FlightFact
       end
     end
 
-    attr_reader :args, :opts
+    attr_reader :args, :opts, :credentials, :args_asset
+    def_delegators :credentials, :connection, :fetch_asset_id_by_name
 
-    def initialize(*args, **opts)
+
+    def initialize(*args, credentials: nil, args_asset: nil, **opts)
       @args = args.dup
       @opts = Hashie::Mash.new(**opts.dup)
+      @credentials = credentials || Config::CACHE.load_credentials
+      @args_asset = args_asset
     end
 
     ##
@@ -78,25 +81,17 @@ module FlightFact
     end
 
     ##
-    # @return [Flight::Fact::CredentialsConfig] the cached credentials object
-    def credentials
-      @credentials ||= Config::CACHE.load_credentials
-    end
-    def_delegators :credentials, :connection, :fetch_asset_id_by_name
-
-    ##
     # @return [String] the asset id associated with the command
     def asset_id
-      @asset_id ||= if opts.asset
-        fetch_asset_id_by_name(opts.asset)
+      @asset_id ||= if args_asset
+        fetch_asset_id_by_name(args_asset)
       elsif id = credentials.resolve_asset_id
         id
       else
-        raise InputError, <<~ERROR.chomp
-          This installation has not been configured with a default asset.
-          Please do one of the following:
-           * Re-run the command with: --asset NAME
-           * Or configure the default asset: #{Config::CACHE.app_name} configure
+        raise InternalError, <<~ERROR.chomp
+          An unexpected error has occurred!
+          The application does not appear to be correctly configured
+          Please contact your system administrator for further assistance
         ERROR
       end
     end

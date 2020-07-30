@@ -32,14 +32,34 @@ module FlightFact
   class CLI
     extend Commander::CLI
 
-    def self.create_command(name, args_str = '')
+    ##
+    # Used by the CLI to define the method signatures, it may become stale
+    # depending which commands have been ran (e.g. configure)
+    def self.cached_credentials
+      @cached_credentials ||= Config::CACHE.load_credentials
+    end
+
+    def self.create_command(name, args_str = '', auto_asset: true)
       command(name) do |c|
-        c.syntax = "#{program :name} #{name} #{args_str}"
+        if auto_asset && !cached_credentials.resolve_asset_id
+          c.syntax = "#{program :name} #{name} ASSET #{args_str}"
+        else
+          c.syntax = "#{program :name} #{name} #{args_str}"
+        end
         c.hidden = true if name.split.length > 1
 
         c.action do |args, opts|
           require_relative 'commands'
-          Commands.build(name, *args, **opts.to_h).run!
+
+          # Injects the cached credentials onto the command and resets the cache
+          old = cached_credentials
+          @cached_credentials = nil
+
+          # Determines if an asset has been provided with the command
+          asset = c.syntax.include?('ASSET') ? args.shift : nil
+
+          Commands.build(name, *args, credentials: old, args_asset: asset, **opts.to_h)
+                  .run!
         end
 
         yield c if block_given?
@@ -52,7 +72,7 @@ module FlightFact
     program :description, 'Manage Alces Flight Center asset metadata entries'
     program :help_paging, false
 
-    create_command('configure') do |c|
+    create_command('configure', auto_asset: false) do |c|
       c.summary = 'Initial application setup'
       c.slop.string '--jwt', "Update the API access token. Unset with empty string: ''"
       c.slop.string '--asset', <<~DESC.chomp
@@ -79,7 +99,7 @@ module FlightFact
     end
 
     if Config::CACHE.development?
-      create_command 'console' do |c|
+      create_command 'console', auto_asset: false do |c|
         c.action do |args, opts|
           require_relative 'commands'
           Command.new(*args, **opts.to_h).pry
