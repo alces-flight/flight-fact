@@ -108,8 +108,14 @@ module FlightFact
       File.write path, YAML.dump(credentials.to_h)
     end
 
-    def relative_url(*a)
-      File.join('assets', asset_id, 'metadata', *a)
+    def key_url(key)
+      # Prevent the key exceeding the maximum length
+      raise InputError, <<~ERROR.chomp if key.length > Config::CACHE.max_key_length
+        The following key exceeds the maximum length: #{key[0..10]}...
+        The maximum length is #{Config::CACHE.max_key_length} characters
+      ERROR
+
+      File.join('assets', asset_id, 'metadata', key)
     end
 
     ##
@@ -117,7 +123,7 @@ module FlightFact
     # @return [Hash] the fact associated with the asset
     # @raises InternalError the asset is missing or the connection has been missed configured
     def request_fact
-      connection.get(relative_url).body
+      connection.get(File.join('assets', asset_id, 'metadata')).body
     rescue Faraday::ResourceNotFound
       raise_missing_asset
     end
@@ -125,7 +131,7 @@ module FlightFact
     ##
     # Returns an entry via it's key
     def request_get_entry(key)
-      connection.get(relative_url(key)).body
+      connection.get(key_url key).body
     rescue Faraday::ResourceNotFound
       raise MissingError, <<~ERROR.chomp
         Could not find an entry for: #{key}
@@ -135,7 +141,7 @@ module FlightFact
     ##
     # Sets a key-value pair against the asset
     def request_set_entry(key, value)
-      connection.put(relative_url(key), JSON.dump(value))
+      connection.put(key_url(key), JSON.dump(value))
     rescue Faraday::ResourceNotFound
       raise_missing_asset
     end
@@ -143,7 +149,7 @@ module FlightFact
     ##
     # Permanently unset an entry
     def request_delete_entry(key)
-      connection.delete(relative_url(key))
+      connection.delete(key_url key)
     rescue Faraday::ResourceNotFound
       raise_missing_asset
     end

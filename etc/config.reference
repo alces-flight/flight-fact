@@ -77,6 +77,17 @@ config :config_path, default: "#{xdg.config_home}/flight/fact"
 config :asset_command, default: "#{root_join 'bin/flight'} asset"
 
 # ==============================================================================
+# Maximum Key Length
+# Set the maximum character length for a key
+# NOTE:
+#  * The URL encoded version of a key maybe longer
+#  * This parameter must greater than 10 to allow for nice error handling
+# ==============================================================================
+config :max_key_length, default: 1024, transform_with: ->(v) do
+  (i = v.to_i) > 10 ? i : 11
+end
+
+# ==============================================================================
 # Log Path
 # The file the logger will write to. It will write to standard error when set to
 # empty string.
