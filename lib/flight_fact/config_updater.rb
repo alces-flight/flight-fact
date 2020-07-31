@@ -28,8 +28,19 @@
 module FlightFact
   class ConfigUpdater
     extend Forwardable
-    attr_reader :asset_name, :asset_id
+    attr_reader :asset_name, :asset_id, :credentials
     def_delegators :credentials, :jwt, :jwt=
+
+    ##
+    # Sets the asset_name/asset_id based on the initial values
+    def initialize
+      if Config::CACHE.implicit_static_asset?
+        self.asset_name = Config::CACHE.unresolved_asset_name
+      elsif Config::CACHE.static_asset?
+        self.asset_id = Config::CACHE.static_asset_id
+      end
+      @credentials ||= Config::CACHE.load_credentials
+    end
 
     def asset_id=(id)
       @asset_name = nil
@@ -49,10 +60,6 @@ module FlightFact
       ERROR
     end
 
-    def credentials
-      @credentials ||= Config::CACHE.load_credentials
-    end
-
     ##
     # Saves both the credentials file and updated config
     def save
@@ -60,12 +67,8 @@ module FlightFact
       assert_writable
 
       # Update the main config
-      if asset_id.nil?
-        Config::CACHE.delete(:static_asset_id)
-      else
-        Config::CACHE.static_asset_id = asset_id
-      end
-      if asset_name.nil?
+      Config::CACHE.static_asset_id = asset_id
+      if asset_name.nil? # Do not save nil names
         Config::CACHE.delete(:unresolved_asset_name)
       else
         Config::CACHE.unresolved_asset_name = asset_name
@@ -79,6 +82,7 @@ module FlightFact
 
       # Update the credentials
       Config::CACHE.logger.info "Updating: #{Config::CACHE.credentials_path}"
+      credentials.delete(:jwt) if jwt.nil?
       File.write Config::CACHE.credentials_path, YAML.dump(credentials.to_h)
     end
 

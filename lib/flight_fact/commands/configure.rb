@@ -70,8 +70,6 @@ module FlightFact
           updater.jwt = nil
         elsif opts.jwt
           updater.jwt = opts.jwt
-        else
-          updater.jwt = credentials.jwt
         end
 
         if opts.asset && opts.asset.empty?
@@ -80,12 +78,6 @@ module FlightFact
           updater.asset_id = opts.asset
         elsif opts.asset
           updater.asset_name = opts.asset
-        elsif Config::CACHE.implicit_static_asset?
-          updater.asset_name = Config::CACHE.unresolved_asset_name
-        elsif Config::CACHE.static_asset?
-          updater.asset_id = Config::CACHE.static_asset_id
-        else
-          updater.asset_id = nil
         end
 
         updater.validate if opts.validate
