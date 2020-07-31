@@ -29,7 +29,7 @@ module FlightFact
   module Commands
     class Get < Command
       def run
-        puts request_get_entry(*args)
+        puts Paint[request_get_entry(*args), :green]
       end
     end
   end
