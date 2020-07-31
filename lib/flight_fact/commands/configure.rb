@@ -31,26 +31,6 @@ require_relative '../config_updater'
 module FlightFact
   module Commands
     class Configure < Command
-      # def run
-      #   # TODO: The configure command is currently broken and needs to be reworked
-      #   raise NotImplementedError
-
-      #   process_jwt_option
-      #   process_asset_option
-
-      #   if $stdout.tty?
-      #     prompt_for_jwt
-      #     prompt_for_default_asset
-      #     opts.validate = prompt.yes?('Validate credentials?') unless opts.validate
-      #   end
-
-      #   # Reset the credentials with a copy of the original
-      #   @credentials = CredentialsConfig.new(credentials.to_h)
-
-      #   validate if opts.validate && credentials.resolve_asset_id
-      #   save_credentials
-      # end
-
       def run
         if $stdout.tty? && opts.select { |_, v| v }.empty?
           # Run interactively if connected to a TTY without options
@@ -62,7 +42,45 @@ module FlightFact
       end
 
       def run_interactive
-        raise NotImplementedError
+        # Prompt for the JWT
+        old_jwt_mask = mask(updater.jwt)
+        opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if updater.jwt }
+        new_jwt = prompt.ask 'Flight Center API token:', **opts
+        updater.jwt = new_jwt unless new_jwt == old_jwt_mask
+
+        validatable = prompt.select('How should the asset(s) be configured?') do |menu|
+          menu.instance_variable_set(:@cycle, true)
+          default = if Config::CACHE.implicit_static_asset?
+            2 # By name
+          elsif Config::CACHE.static_asset?
+            1 # By ID
+          else
+            3 # Multiple
+          end
+          menu.default default
+
+          # NOTE: These are order dependent so the default works
+          menu.choice 'Single asset by ID' do
+            opts = { required: true }.tap do |o|
+              o[:default] = Config::CACHE.static_asset_id if Config::CACHE.explicit_static_asset?
+            end
+            updater.asset_id = prompt.ask 'What is the asset ID?', **opts
+            true
+          end
+          menu.choice 'Single asset by name' do
+            updater.asset_name = prompt.ask('What is the asset name?', default: Config::CACHE.unresolved_asset_name)
+            true
+          end
+          menu.choice 'Multiple assets' do
+            updater.asset_id = nil
+            false
+          end
+        end
+
+        # Prompts if the user wants to run the validator, disabled in multi mode
+        updater.validate if validatable && prompt.yes?('Do you wish to run the validation?', default: false)
+
+        updater.save
       end
 
       def run_non_interactive
@@ -91,35 +109,6 @@ module FlightFact
 
       def updater
         @updater ||= ConfigUpdater.new.tap(&:assert_writable)
-      end
-
-      def prompt_for_jwt
-        old_jwt_mask = mask(credentials.jwt)
-        opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if credentials.jwt }
-        new_jwt = prompt.ask 'Flight Center API token:', **opts
-        credentials.jwt = new_jwt unless new_jwt == old_jwt_mask
-      end
-
-      def prompt_for_default_asset
-        if prompt.yes? "Define the default asset by ID?", default: (credentials.asset_id ? true : false)
-          opts = { requried: true }.tap do |o|
-            o[:default] = credentials.asset_id if credentials.asset_id
-          end
-          credentials.asset_id = prompt.ask 'Default Asset ID:', **opts
-          credentials.unresolved_name = nil
-        elsif prompt.yes? "Define the default asset by name?", default: true
-          name = prompt.ask "Default Asset Name:", default: default_to_asset_prompt
-          credentials.unresolved_name = name
-          credentials.asset_id = nil
-        elsif credentials.asset_id
-          $stderr.puts 'Removing previously set default asset'
-          credentials.asset_id = nil
-          credentials.unresolved_name = nil
-        end
-      end
-
-      def default_to_asset_prompt
-        credentials.unresolved_name || `hostname --short`.chomp
       end
 
       def mask(jwt)

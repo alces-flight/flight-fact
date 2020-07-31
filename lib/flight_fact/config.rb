@@ -118,6 +118,12 @@ module FlightFact
     end
 
     ##
+    # Determines if the asset ID has been explicitly set
+    def explicit_static_asset?
+      static_asset? && !implicit_static_asset?
+    end
+
+    ##
     # Determines if the asset ID should be resolved from the unresolved_asset_name
     def implicit_static_asset?
       [true, 'true'].include?(static_asset_id)
