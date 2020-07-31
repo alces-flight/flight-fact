@@ -45,8 +45,7 @@ module FlightFact
     end
 
     attr_reader :args, :opts, :credentials, :args_asset
-    def_delegators :credentials, :connection, :fetch_asset_id_by_name
-
+    def_delegators :credentials, :connection
 
     def initialize(*args, credentials: nil, args_asset: nil, **opts)
       @args = args.dup
@@ -84,8 +83,8 @@ module FlightFact
     # @return [String] the asset id associated with the command
     def asset_id
       @asset_id ||= if args_asset
-        fetch_asset_id_by_name(args_asset)
-      elsif id = credentials.resolve_asset_id
+        Config::CACHE.fetch_asset_id_by_name(args_asset)
+      elsif id = Config::CACHE.resolve_asset_id
         id
       else
         raise InternalError, <<~ERROR.chomp

@@ -31,6 +31,9 @@ module FlightFact
   module Commands
     class Configure < Command
       def run
+        # TODO: The configure command is currently broken and needs to be reworked
+        raise NotImplementedError
+
         process_jwt_option
         process_asset_option
 

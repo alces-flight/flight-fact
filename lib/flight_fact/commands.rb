@@ -42,13 +42,6 @@ module FlightFact
             The API access token has not been set! Please see:
             #{Paint["#{Config::CACHE.app_name} configure", :yellow]}
           ERROR
-
-          if opts[:asset]
-            # NOOP - Skip resolution check if an asset has been provided
-          elsif cmd.credentials.resolve?
-            # Saves the credentials if they needed resolving
-            cmd.save_credentials
-          end
         end
       end
     rescue NameError

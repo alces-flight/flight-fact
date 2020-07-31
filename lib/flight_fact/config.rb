@@ -81,6 +81,63 @@ module FlightFact
 
     config :development
 
+
+    ##
+    # The method DOES NOT USE this object as it's credentials. It integrates
+    # with 'flight-asset' which must be configured independently.
+    def fetch_asset_id_by_name(name)
+      cmd = "#{asset_command} show #{name}"
+      logger.info "Running: #{cmd}"
+      stdout, stderr, status = Bundler.with_unbundled_env do
+        Open3.capture3(*cmd.split(' '))
+      end
+      if status.exitstatus == 0
+        logger.info "Flight Asset: #{status}"
+        stdout.chomp.split("\t")[5]
+      elsif status.exitstatus == 21
+        logger.error "Flight Asset: #{status}"
+        raise MissingError, <<~ERROR.chomp
+          Could not locate asset: #{name}
+        ERROR
+      else
+        logger.error "Flight Asset: #{status}"
+        logger.debug stdout
+        logger.error stderr
+        raise InternalError, <<~ERROR.chomp
+          An unexpected error has occurred!
+          Please ensure the following executes correctly and try again:
+          #{Paint[cmd, :yellow]}
+        ERROR
+      end
+    end
+
+    ##
+    # Determines if the application is in static/ single asset mode
+    def static_asset?
+      ![nil, 'nil', false, 'false', ''].include? static_asset_id
+    end
+
+    ##
+    # Interprets the static_asset_id and unresolved_asset_name as a single
+    # input. It will reset the static_asset_id if it successfully resolves
+    # the name
+    #
+    # NOTE: This method may error, it must not be used before the error
+    #       handler has started
+    def resolve_asset_id
+      if [true, 'true'].include? static_asset_id
+        # Try and resolve the asset id from unresolved_asset_name
+        logger.info 'Attempting to resolve the static asset ID'
+        self.static_asset_id = fetch_asset_id_by_name(self.unresolved_asset_name).to_s
+      elsif static_asset?
+        # Use the static ID from the config
+        static_asset_id.to_s
+      else
+        # Multi Asset Mode - Returns nil
+        nil
+      end
+    end
+
     def credentials_path
       File.join(config_path, 'credentials.yaml')
     end

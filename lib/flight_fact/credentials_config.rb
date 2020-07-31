@@ -31,9 +31,10 @@ require 'faraday_middleware'
 
 module FlightFact
   class CredentialsConfig < Hashie::Dash
+    include Hashie::Extensions::IgnoreUndeclared
+    include Hashie::Extensions::Dash::IndifferentAccess
+
     property :jwt
-    property :asset_id
-    property :unresolved_name
 
     def jwt?
       !(jwt.nil? || jwt.empty?)
@@ -61,58 +62,6 @@ module FlightFact
           c.request :json
           c.adapter :net_http
         end
-      end
-    end
-
-    ##
-    # @returns [Boolean] true iff the name requires and is resolved
-    def resolve?
-      asset_id != resolve_asset_id
-    end
-
-    ##
-    # Interprets the asset_id and asset_name in tandem. The underlining
-    # assumption is the asset_id is always correct. It is the responsibility
-    # of the Configure command to unset it
-    def resolve_asset_id
-      if asset_id
-        asset_id
-      elsif unresolved_name
-        self.asset_id = fetch_asset_id_by_name(unresolved_name)
-      end
-    end
-
-    ##
-    # NOTE: ANTI-PATTERN ALERT!
-    # Both the CredentialsConfig and Command objects require the ability to
-    # resolve asset names to ids. As each Command object already stores a
-    # CredentialsConfig, the best place to store it is here.
-    #
-    # The method DOES NOT USE this object as it's credentials. It integrates
-    # with 'flight-asset' which must be configured independently.
-    def fetch_asset_id_by_name(name)
-      cmd = "#{Config::CACHE.asset_command} show #{name}"
-      Config::CACHE.logger.info "Running: #{cmd}"
-      stdout, stderr, status = Bundler.with_unbundled_env do
-        Open3.capture3(*cmd.split(' '))
-      end
-      if status.exitstatus == 0
-        Config::CACHE.logger.info "Flight Asset: #{status}"
-        stdout.chomp.split("\t")[5]
-      elsif status.exitstatus == 21
-        Config::CACHE.logger.error "Flight Asset: #{status}"
-        raise MissingError, <<~ERROR.chomp
-          Could not locate asset: #{name}
-        ERROR
-      else
-        Config::CACHE.logger.error "Flight Asset: #{status}"
-        Config::CACHE.logger.debug stdout
-        Config::CACHE.logger.error stderr
-        raise InternalError, <<~ERROR.chomp
-          An unexpected error has occurred!
-          Please ensure the following executes correctly and try again:
-          #{Paint[cmd, :yellow]}
-        ERROR
       end
     end
   end
