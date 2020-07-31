@@ -28,6 +28,7 @@
 require 'json'
 require 'open3'
 require 'paint'
+require 'uri'
 
 require 'forwardable'
 
@@ -109,7 +110,7 @@ module FlightFact
         The maximum length is #{Config::CACHE.max_key_length} characters
       ERROR
 
-      File.join('assets', asset_id, 'metadata', key)
+      File.join('assets', asset_id, 'metadata', URI.encode_www_form_component(key).gsub('.', '%2E'))
     end
 
     ##
