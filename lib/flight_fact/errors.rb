@@ -57,7 +57,8 @@ module FlightFact
   end
 
   DuplicateError = GeneralError.define_class(4)
-  CredentialsError = GeneralError.define_class(5)
+  ValidationError = GeneralError.define_class(5)
+  class CredentialsError < ValidationError; end
   PermissionError = GeneralError.define_class(6)
 
   MissingError = GeneralError.define_class(20)

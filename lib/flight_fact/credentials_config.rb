@@ -64,6 +64,10 @@ module FlightFact
         end
       end
     end
+
+    def request_fact(asset_id)
+      connection.get(File.join('assets', asset_id, 'metadata')).body
+    end
   end
 end
 

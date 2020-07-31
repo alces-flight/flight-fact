@@ -113,11 +113,11 @@ module FlightFact
     end
 
     ##
-    # Finds the fact associated with the (see #connection)
+    # Finds the fact associated with the asset (see #connection)
     # @return [Hash] the fact associated with the asset
     # @raises InternalError the asset is missing or the connection has been missed configured
     def request_fact
-      connection.get(File.join('assets', asset_id, 'metadata')).body
+      credentials.request_fact(asset_id)
     rescue Faraday::ResourceNotFound
       raise_missing_asset
     end

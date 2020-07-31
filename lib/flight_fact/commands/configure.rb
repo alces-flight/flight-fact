@@ -93,6 +93,29 @@ module FlightFact
           end
         end
 
+        def validate
+          if asset_id == true
+            raise ValidationError, <<~ERROR.chomp
+              Could not locate the specified asset!
+              Please ensure the following executes correctly and try again:
+              #{Paint["#{Config::CACHE.asset_command} show #{asset_name}", :yellow]}
+            ERROR
+          elsif asset_id
+            begin
+              credentials.request_fact(asset_id)
+            rescue
+              raise ValidationError, <<~ERROR.chomp
+                Could not access the metadata for the specified asset
+                Try regenerating the API token and try again
+
+                Please contact your system administrator if this error persists
+              ERROR
+            end
+          else
+            raise InputError, 'Validation is not possible in multi-asset mode'
+          end
+        end
+
         ##
         # Use to detect if the user can write to a particular path, either by:
         # * Writing the existing content back to the file, or
@@ -168,6 +191,8 @@ module FlightFact
           updater.asset_id = nil
         end
 
+        updater.validate if opts.validate
+
         updater.save
       end
 
@@ -206,21 +231,6 @@ module FlightFact
 
       def default_to_asset_prompt
         credentials.unresolved_name || `hostname --short`.chomp
-      end
-
-      # NOTE: This validation could fail for rather complex reasons. The request
-      # to `flight asset` uses a different set of configurations which opens the
-      # possibility for inconsistencies (e.g. base_url, expired tokens etc..)
-      def validate
-        request_fact
-      rescue InternalError
-        raise InputError, <<~ERROR.chomp
-          Could not locate the asset! Please check the following:
-           * Ensure the asset exists, and
-           * Regenerate the API token as it may have expired.
-
-          Please contact your system administrator if this error persists
-        ERROR
       end
 
       def mask(jwt)
