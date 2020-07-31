@@ -28,7 +28,14 @@
 module FlightFact
   module Commands
     class Set < Command
+      define_args :key, :value
+
       def run
+        if (values = Config::SPECIAL_KEYS[key]) && !values&.include?(value)
+          raise InputError, <<~ERROR.chomp
+            The '#{key}' may only have the following values: #{values.join(', ')}
+          ERROR
+        end
         request_set_entry(*args)
       end
     end
