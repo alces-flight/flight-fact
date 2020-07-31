@@ -118,6 +118,12 @@ module FlightFact
     end
 
     ##
+    # Determines if the asset ID should be resolved from the unresolved_asset_name
+    def implicit_static_asset?
+      [true, 'true'].include?(static_asset_id)
+    end
+
+    ##
     # Interprets the static_asset_id and unresolved_asset_name as a single
     # input. It will reset the static_asset_id if it successfully resolves
     # the name
@@ -125,7 +131,7 @@ module FlightFact
     # NOTE: This method may error, it must not be used before the error
     #       handler has started
     def resolve_asset_id
-      if [true, 'true'].include? static_asset_id
+      if implicit_static_asset?
         # Try and resolve the asset id from unresolved_asset_name
         logger.info 'Attempting to resolve the static asset ID'
         self.static_asset_id = fetch_asset_id_by_name(self.unresolved_asset_name).to_s
