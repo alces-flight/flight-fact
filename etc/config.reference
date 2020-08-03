@@ -115,12 +115,23 @@ end
 #
 # NOTE:
 # * This config value should be a hash with stringified keys,
+# * Technically the value maybe an array of array's,
 # * The defaults are not merged into the provided hash, and
 # * Nil inputs will unset the value
 # ==============================================================================
 config  :special_keys,
   required: false,
-  transform_with: ->(h) { h ? h.map { |k, v| [k.to_s, v] }.to_h : {} },
+  transform_with: ->(hash) do
+    if hash && hash.respond_to?(:map)
+      hash.map { |k, *v| [k.to_s, v.flatten] }.to_h
+    elsif hash
+      raise FlightFact::ConfigError, <<~ERROR.chomp
+        Failed to load the 'special_keys' config value as '#{hash}' isn't enumerable
+      ERROR
+    else
+      {}
+    end
+  end,
   default: {
     'power_state'       => ['on', 'off'],
     'maintenance_state' => ['ok', 'investigating_problem', 'under_maintenance']

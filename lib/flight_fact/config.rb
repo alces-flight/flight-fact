@@ -32,6 +32,7 @@ require 'hashie'
 require 'xdg'
 
 require_relative 'credentials_config.rb'
+require_relative 'errors'
 
 module FlightFact
   REFERENCE_PATH = File.expand_path('../../etc/config.reference', __dir__)
@@ -89,6 +90,9 @@ module FlightFact
     attr_writer :app_name
     def app_name
       @app_name ||= 'flight-fact'
+    end
+    def app_name!
+      app_name
     end
 
     config :development

@@ -60,6 +60,7 @@ module FlightFact
   ValidationError = GeneralError.define_class(5)
   class CredentialsError < ValidationError; end
   PermissionError = GeneralError.define_class(6)
+  ConfigError = InputError.define_class(4)
 
   MissingError = GeneralError.define_class(20)
   MissingAsset = MissingError.define_class(21)
