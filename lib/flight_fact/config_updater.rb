@@ -34,9 +34,11 @@ module FlightFact
     # Sets the asset_name/asset_id based on the initial values
     def initialize
       if Config::CACHE.implicit_static_asset?
-        self.asset_name = Config::CACHE.unresolved_asset_name
+        @asset_id = true
+        @asset_name = Config::CACHE.unresolved_asset_name
       elsif Config::CACHE.static_asset?
-        self.asset_id = Config::CACHE.static_asset_id
+        @asset_id = Config::CACHE.static_asset_id
+        @asset_name = nil
       end
       @old_credentials = Config::CACHE.load_credentials
       @jwt = old_credentials.jwt
@@ -66,9 +68,9 @@ module FlightFact
     ##
     #
     def asset_name=(name)
-      if Config::CACHE.unresolved_name.to_s != name.to_s
+      if Config::CACHE.unresolved_asset_name.to_s != name.to_s
         @asset_name = name
-        @asset_id = nil
+        @asset_id = true
         @main_changed = true
       end
     end
@@ -81,51 +83,36 @@ module FlightFact
       @credentials_changed ? true : false
     end
 
-    # TODO: Reinstate ID resolution
-    # Config::CACHE.fetch_asset_id_by_name(name)
-    # rescue
-    #   # Logs the asset name wasn't resolve but flags the asset_id as truthy
-    #   # This will trigger the name to be resolved at some future point - hopefully
-    #   @asset_id = true
-    #   Config::CACHE.logger.error <<~ERROR.chomp.chomp
-    #     Failed to resolve asset: #{name}. Continuing with an unresolved asset name.
-    #   ERROR
-    # end
-
     ##
     # Saves both the credentials file and updated config
     def save
       # Ensures the user has permission to write to the updated configs
       assert_writable(CONFIG_PATH) if main_changed?
-      assert_writable(new_main.credentials_path) if credentials_changed?
+      assert_writable(Config::CACHE.credentials_path) if credentials_changed?
 
       # Updates the main config
-      new_main = Config::CACHE
       if main_changed?
-        new_main_hash = build_main_hash
-        new_main = Config.new(new_main_hash)
         Config::CACHE.logger.info "Updating: #{CONFIG_PATH}"
-        File.write(CONFIG_PATH, YAML.dump(new_main_hash))
+        File.write(CONFIG_PATH, YAML.dump(build_main_hash))
       else
         Config::CACHE.logger.warn "Skipping: #{CONFIG_PATH}"
       end
 
       # Updates the credentials
       if credentials_changed?
-        Config::CACHE.logger.info "Updating: #{new_main.credentials_path}"
-        File.write new_main.credentials_path, YAML.dump(build_credentials_hash)
+        Config::CACHE.logger.info "Updating: #{Config::CACHE.credentials_path}"
+        File.write Config::CACHE.credentials_path, YAML.dump(build_credentials_hash)
       else
-        Config::CACHE.logger.warn "Skipping: #{new_main.credentials_path}"
+        Config::CACHE.logger.warn "Skipping: #{Config::CACHE.credentials_path}"
       end
     end
 
     def validate
-      if asset_id == true
-        raise ValidationError, <<~ERROR.chomp
-          Could not locate the specified asset!
-          Please ensure the following executes correctly and try again:
-          #{Paint["#{Config::CACHE.asset_command} show #{asset_name}", :yellow]}
-        ERROR
+      if asset_id == true && asset_name
+        @asset_id = Config::CACHE.fetch_asset_id_by_name(asset_name)
+        @main_changed = true
+      elsif asset_id == true
+        raise InternalError, 'An unexpected error has occurred'
       elsif asset_id
         begin
           CredentialsConfig.new(jwt: jwt).request_fact(asset_id)
@@ -162,7 +149,7 @@ module FlightFact
     ##
     # Returns the hash representation of the credentials config
     def build_credentials_hash
-      old_credentials.to_h.dup do |h|
+      old_credentials.to_h.dup.tap do |h|
         if jwt.nil? || jwt.empty?
           h.delete('jwt')
         else
