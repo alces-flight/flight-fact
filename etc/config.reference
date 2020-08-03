@@ -116,7 +116,8 @@ end
 # NOTE:
 # * This config value should be a hash with stringified keys,
 # * Technically the value maybe an array of array's,
-# * The defaults are not merged into the provided hash, and
+# * The defaults are not merged into the provided hash,
+# * The set command can be disabled by not setting any values for it, and
 # * Nil inputs will unset the value
 # ==============================================================================
 config  :special_keys,
@@ -125,9 +126,7 @@ config  :special_keys,
     if hash && hash.respond_to?(:map)
       hash.map { |k, *v| [k.to_s, v.flatten] }.to_h
     elsif hash
-      raise FlightFact::ConfigError, <<~ERROR.chomp
-        Failed to load the 'special_keys' config value as '#{hash}' isn't enumerable
-      ERROR
+      { hash.to_s => [] }
     else
       {}
     end

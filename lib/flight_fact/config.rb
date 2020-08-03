@@ -165,6 +165,18 @@ module FlightFact
       end
     end
 
+    ##
+    # Process the special_keys for the disabled keys
+    def disabled_special_keys
+      special_keys.select { |_, v| v.empty? }.map(&:first)
+    end
+
+    ##
+    # Process the special_keys with values
+    def allowed_special_keys
+      special_keys.reject { |_, v| v.empty? }.to_h
+    end
+
     def credentials_path
       File.join(config_path, 'credentials.yaml')
     end

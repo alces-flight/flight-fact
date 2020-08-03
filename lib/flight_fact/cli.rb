@@ -92,15 +92,23 @@ module FlightFact
 
     create_command('set', 'KEY VALUE') do |c|
       c.summary = 'Set a fact entry'
-      special_keys_description = if Config::CACHE.special_keys.empty?
-        ''
-      else
-        max = Config::CACHE.special_keys.keys.map(&:length).max
-        <<~DESC.chomp
+      special_keys_description = ''
+      unless Config::CACHE.allowed_special_keys.empty?
+        max = Config::CACHE.allowed_special_keys.keys.map(&:length).max
+        special_keys_description += <<~DESC.chomp
+
 
           Certain keys have special status within Alces Flight Center UI and may
           only have the following values:
-          #{Config::CACHE.special_keys.map { |k, v| " * #{' ' * (max - k.length)}#{k}: #{v.join(', ')}" }.join("\n")}
+          #{Config::CACHE.allowed_special_keys.map { |k, v| " * #{' ' * (max - k.length)}#{k}: #{v.join(', ')}" }.join("\n")}
+        DESC
+      end
+      unless Config::CACHE.disabled_special_keys.empty?
+        special_keys_description += <<~DESC.chomp
+
+
+          The following keys may not be set:
+          #{Config::CACHE.disabled_special_keys.map { |k| " * #{k}" }.join("\n")}
         DESC
       end
 

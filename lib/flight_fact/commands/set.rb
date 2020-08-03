@@ -32,9 +32,15 @@ module FlightFact
 
       def run
         if (values = Config::CACHE.special_keys[key]) && !values&.include?(value)
-          raise InputError, <<~ERROR.chomp
-            The '#{key}' may only have the following values: #{values.join(', ')}
-          ERROR
+          if values.empty?
+            raise InputError, <<~ERROR.chomp
+              The '#{key}' key can not be set!
+            ERROR
+          else
+            raise InputError, <<~ERROR.chomp
+              The '#{key}' key can only have the following values: #{values.join(', ')}
+            ERROR
+          end
         end
         request_set_entry(*args)
       end
