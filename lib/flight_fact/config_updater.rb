@@ -28,8 +28,7 @@
 module FlightFact
   class ConfigUpdater
     extend Forwardable
-    attr_accessor :jwt
-    attr_reader :asset_name, :asset_id, :old_credentials
+    attr_reader :jwt, :asset_name, :asset_id, :old_credentials
 
     ##
     # Sets the asset_name/asset_id based on the initial values
@@ -41,63 +40,80 @@ module FlightFact
       end
       @old_credentials = Config::CACHE.load_credentials
       @jwt = old_credentials.jwt
+      @main_changed = false
+      @credentials_changed = false
     end
 
+    ##
+    # Sets the jwt and flags if the credentials have changed
+    def jwt=(token)
+      if old_credentials.jwt.to_s != token.to_s
+        @jwt = token
+        @credentials_changed = true
+      end
+    end
+
+    ##
+    # Sets the asset_id and flags if the main config has changed
     def asset_id=(id)
-      @asset_name = nil
-      @asset_id = id
+      if Config::CACHE.static_asset_id.to_s != id.to_s
+        @asset_name = nil
+        @asset_id = id
+        @main_changed = true
+      end
     end
 
+    ##
+    #
     def asset_name=(name)
-      @asset_name = name
-      # Attempts to resolve the asset name
-      @asset_id = Config::CACHE.fetch_asset_id_by_name(name)
-    rescue
-      # Logs the asset name wasn't resolve but flags the asset_id as truthy
-      # This will trigger the name to be resolved at some future point - hopefully
-      @asset_id = true
-      Config::CACHE.logger.error <<~ERROR.chomp.chomp
-        Failed to resolve asset: #{name}. Continuing with an unresolved asset name.
-      ERROR
+      if Config::CACHE.unresolved_name.to_s != name.to_s
+        @asset_name = name
+        @asset_id = nil
+        @main_changed = true
+      end
     end
+
+    def main_changed?
+      @main_changed ? true : false
+    end
+
+    def credentials_changed?
+      @credentials_changed ? true : false
+    end
+
+    # TODO: Reinstate ID resolution
+    # Config::CACHE.fetch_asset_id_by_name(name)
+    # rescue
+    #   # Logs the asset name wasn't resolve but flags the asset_id as truthy
+    #   # This will trigger the name to be resolved at some future point - hopefully
+    #   @asset_id = true
+    #   Config::CACHE.logger.error <<~ERROR.chomp.chomp
+    #     Failed to resolve asset: #{name}. Continuing with an unresolved asset name.
+    #   ERROR
+    # end
 
     ##
     # Saves both the credentials file and updated config
     def save
-      # Gets the original versions of the configs
-      original_main_hash = Config::CACHE.to_h
-      original_credentials_hash = old_credentials.to_h
-
-      # Builds the updated content
-      main_hash = build_main_hash
-      credentials_hash = build_credentials_hash
-
-      # Builds the new config
-      new_main = Config.new(**main_hash)
-
-      # Determines which configs need updating
-      changed = []
-      changed << :main unless original_main_hash == main_hash
-      changed << :credentials unless original_credentials_hash == credentials_hash
-
       # Ensures the user has permission to write to the updated configs
-      assert_writable(CONFIG_PATH) if changed.include?(:main)
-      assert_writable(new_main.credentials_path) if changed.include?(:credentials)
+      assert_writable(CONFIG_PATH) if main_changed?
+      assert_writable(new_main.credentials_path) if credentials_changed?
 
-      # Updates the main config (without saving the defaults)
-      if changed.include?(:main)
+      # Updates the main config
+      new_main = Config::CACHE
+      if main_changed?
+        new_main_hash = build_main_hash
+        new_main = Config.new(new_main_hash)
         Config::CACHE.logger.info "Updating: #{CONFIG_PATH}"
-        blank = Config.new.to_h
-        data = main_hash.reject { |k, v| blank[k] == v }.to_h
-        File.write(CONFIG_PATH, YAML.dump(data))
+        File.write(CONFIG_PATH, YAML.dump(new_main_hash))
       else
         Config::CACHE.logger.warn "Skipping: #{CONFIG_PATH}"
       end
 
       # Updates the credentials
-      if changed.include?(:credentials)
+      if credentials_changed?
         Config::CACHE.logger.info "Updating: #{new_main.credentials_path}"
-        File.write new_main.credentials_path, YAML.dump(credentials_hash)
+        File.write new_main.credentials_path, YAML.dump(build_credentials_hash)
       else
         Config::CACHE.logger.warn "Skipping: #{new_main.credentials_path}"
       end
@@ -127,15 +143,19 @@ module FlightFact
     end
 
     ##
-    # Returns the hash representation of the main config
+    # Returns the hash representation of the main config without the defaults
     def build_main_hash
       Config::CACHE.to_h.dup.tap do |h|
-        h[:static_asset_id] = asset_id
+        h['static_asset_id'] = asset_id
         if asset_name.nil?
-          h.delete(:unresolved_asset_name)
+          h.delete('unresolved_asset_name')
         else
-          h[:unresolved_asset_name] = asset_name
+          h['unresolved_asset_name'] = asset_name
         end
+
+        # Remove the default values
+        blank = Config.new.to_h
+        h.reject! { |k, v| blank[k] == v }
       end
     end
 
@@ -144,9 +164,9 @@ module FlightFact
     def build_credentials_hash
       old_credentials.to_h.dup do |h|
         if jwt.nil? || jwt.empty?
-          h.delete(:jwt)
+          h.delete('jwt')
         else
-          h[:jwt] = jwt
+          h['jwt'] = jwt
         end
       end
     end
