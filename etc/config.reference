@@ -124,7 +124,7 @@ config  :special_keys,
   required: false,
   transform_with: ->(hash) do
     if hash && hash.respond_to?(:map)
-      hash.map { |k, *v| [k.to_s, v.flatten] }.to_h
+      hash.map { |k, *v| [k.to_s, v.flatten.reject(&:nil?).map(&:to_s)] }.to_h
     elsif hash
       { hash.to_s => [] }
     else
