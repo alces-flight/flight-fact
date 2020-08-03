@@ -101,7 +101,7 @@ module FlightFact
         stdout.chomp.split("\t")[5]
       elsif status.exitstatus == 21
         logger.error "Flight Asset: #{status}"
-        raise MissingError, <<~ERROR.chomp
+        raise MissingAsset, <<~ERROR.chomp
           Could not locate asset: #{name}
         ERROR
       else

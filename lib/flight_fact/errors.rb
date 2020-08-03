@@ -62,4 +62,6 @@ module FlightFact
   PermissionError = GeneralError.define_class(6)
 
   MissingError = GeneralError.define_class(20)
+  MissingAsset = MissingError.define_class(21)
+  MissingKey   = MissingError.define_class(22)
 end

@@ -128,7 +128,7 @@ module FlightFact
     def request_get_entry(key)
       connection.get(key_url key).body
     rescue Faraday::ResourceNotFound
-      raise MissingError, <<~ERROR.chomp
+      raise MissingKey, <<~ERROR.chomp
         Could not find an entry for: #{key}
       ERROR
     end
