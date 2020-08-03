@@ -79,8 +79,19 @@ module FlightFact
       self.instance_eval(File.read(path), path, 0) if File.exists?(path)
     end
 
-    config :development
+    # ==============================================================================
+    # Application Name
+    # The name of the application to use in the help text
+    # NOTE: The main 'bin/fact' file will attempt to inject the program name set
+    #       in the environment. As such the app_name can not be set via the config
+    #       file.
+    # ==============================================================================
+    attr_writer :app_name
+    def app_name
+      @app_name ||= 'flight-fact'
+    end
 
+    config :development
 
     ##
     # The method DOES NOT USE this object as it's credentials. It integrates

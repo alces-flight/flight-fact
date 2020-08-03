@@ -27,31 +27,45 @@
 #==============================================================================
 
 begin
+  # Reads the environment setup
   ENV['BUNDLE_GEMFILE'] ||= File.join(__FILE__, '../../Gemfile')
+  app_name = ENV.fetch('FLIGHT_PROGRAM_NAME', __FILE__)
 
   require 'rubygems'
   require 'bundler'
   Bundler.setup(:default)
 
-  # Enables the development mode if specified by the config
-  require_relative '../lib/flight_fact/config'
-  if FlightFact::Config::CACHE.development?
-    begin
-      Bundler.setup(:default, :development)
-      require 'pry'
-      require 'pry-byebug'
-    rescue StandardError, LoadError
-      Bundler.setup(:default)
-      $stderr.puts "An error occurred when enabling development mode!"
+  # Sets up the error handler and runs the remaining require
+  require 'commander'
+  Commander::ErrorHandler.new(app_name, false).start do |handler|
+    # Enable trace back with --trace
+    args = handler.parse_trace(*ARGV)
+
+    # Loads the config
+    require_relative '../lib/flight_fact/config'
+
+    # Sets the application name
+    FlightFact::Config::CACHE.app_name = app_name
+
+    # Attempt to enable development mode if requested
+    if FlightFact::Config::CACHE.development?
+      begin
+        Bundler.setup(:default, :development)
+        require 'pry'
+        require 'pry-byebug'
+      rescue StandardError, LoadError
+        Bundler.setup(:default)
+        $stderr.puts "An error occurred when enabling development mode!"
+      end
     end
+
+    # Builds and runs the CLI
+    require_relative '../lib/flight_fact/cli'
+
+    Dir.chdir(ENV.fetch('FLIGHT_CWD','.'))
+    OpenFlight.set_standard_env rescue nil
+    FlightFact::CLI.run(*args)
   end
-
-  # Builds and runs the CLI
-  require_relative '../lib/flight_fact/cli'
-
-  Dir.chdir(ENV.fetch('FLIGHT_CWD','.'))
-  OpenFlight.set_standard_env rescue nil
-  FlightFact::CLI.run!(*ARGV)
 rescue Interrupt
   if Kernel.const_defined?(:Paint)
     $stderr.puts "\n#{Paint['WARNING', :underline, :yellow]}: Cancelled by user"
