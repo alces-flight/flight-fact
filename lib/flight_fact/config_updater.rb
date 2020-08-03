@@ -65,12 +65,17 @@ module FlightFact
       end
     end
 
-    ##
-    #
     def asset_name=(name)
-      if @asset_id != true || Config::CACHE.unresolved_asset_name.to_s != name.to_s
+      if asset_id != true || Config::CACHE.unresolved_asset_name.to_s != name.to_s
         @asset_name = name
         @asset_id = true
+        @main_changed = true
+      end
+    end
+
+    def multi_asset_mode
+      unless asset_id.nil?
+        @asset_id = nil
         @main_changed = true
       end
     end

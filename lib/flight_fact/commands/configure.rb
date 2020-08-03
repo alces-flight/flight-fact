@@ -72,7 +72,7 @@ module FlightFact
             true
           end
           menu.choice 'Multiple assets' do
-            updater.asset_id = nil
+            updater.multi_asset_mode
             false
           end
         end
@@ -91,7 +91,7 @@ module FlightFact
         end
 
         if opts.asset && opts.asset.empty?
-          updater.asset_id = nil
+          updater.multi_asset_mode
         elsif opts.asset && opts.id
           updater.asset_id = opts.asset
         elsif opts.asset
