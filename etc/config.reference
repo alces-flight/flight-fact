@@ -115,6 +115,24 @@ config :max_value_length, default: 1024, transform_with: ->(v) do
 end
 
 # ==============================================================================
+# Special Keys
+# Defines the special keys provided by Alces Flight Center. These restraints
+# are enforced client side and may need to be updated with API changes
+#
+# NOTE:
+# * This config value should be a hash with stringified keys,
+# * The defaults are not merged into the provided hash, and
+# * Nil inputs will unset the value
+# ==============================================================================
+config  :special_keys,
+  required: false,
+  transform_with: ->(h) { h ? h.map { |k, v| [k.to_s, v] }.to_h : {} },
+  default: {
+    'power_state'       => ['on', 'off'],
+    'maintenance_state' => ['ok', 'investigating_problem', 'under_maintenance']
+  }
+
+# ==============================================================================
 # Log Path
 # The file the logger will write to. It will write to standard error when set to
 # empty string.

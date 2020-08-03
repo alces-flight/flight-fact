@@ -92,13 +92,20 @@ module FlightFact
 
     create_command('set', 'KEY VALUE') do |c|
       c.summary = 'Set a fact entry'
-      max = Config::SPECIAL_KEYS.keys.map(&:length).max
-      c.description = <<~DESC
-        Set the VALUE for the metadata entry KEY.
+      special_keys_description = if Config::CACHE.special_keys.empty?
+        ''
+      else
+        max = Config::CACHE.special_keys.keys.map(&:length).max
+        <<~DESC.chomp
 
-        Certain keys have special status within Alces Flight Center UI and may
-        only have the following values:
-        #{Config::SPECIAL_KEYS.map { |k, v| " * #{' ' * (max - k.length)}#{k}: #{v.join(', ')}" }.join("\n")}
+          Certain keys have special status within Alces Flight Center UI and may
+          only have the following values:
+          #{Config::CACHE.special_keys.map { |k, v| " * #{' ' * (max - k.length)}#{k}: #{v.join(', ')}" }.join("\n")}
+        DESC
+      end
+
+      c.description = <<~DESC.chomp
+        Set the VALUE for the metadata entry KEY.#{special_keys_description}
       DESC
     end
 

@@ -31,7 +31,7 @@ module FlightFact
       define_args :key, :value
 
       def run
-        if (values = Config::SPECIAL_KEYS[key]) && !values&.include?(value)
+        if (values = Config::CACHE.special_keys[key]) && !values&.include?(value)
           raise InputError, <<~ERROR.chomp
             The '#{key}' may only have the following values: #{values.join(', ')}
           ERROR

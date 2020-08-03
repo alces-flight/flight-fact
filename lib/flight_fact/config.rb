@@ -41,11 +41,6 @@ module FlightFact
     include Hashie::Extensions::IgnoreUndeclared
     include Hashie::Extensions::Dash::IndifferentAccess
 
-    SPECIAL_KEYS = {
-      "power_state" => ['on', 'off'],
-      "maintenance_state" => ['ok', 'investigating_problem', 'under_maintenance']
-    }
-
     def self.config(sym, **input_opts)
       opts = input_opts.dup
 
