@@ -29,7 +29,9 @@
 begin
   # Reads the environment setup
   ENV['BUNDLE_GEMFILE'] ||= File.join(__FILE__, '../../Gemfile')
-  app_name = ENV.fetch('FLIGHT_PROGRAM_NAME', __FILE__)
+
+  # Determines the app name in the original directory
+  app_name = ENV.fetch('FLIGHT_PROGRAM_NAME', File.expand_path(__FILE__))
 
   require 'rubygems'
   require 'bundler'
@@ -62,9 +64,11 @@ begin
     # Builds and runs the CLI
     require_relative '../lib/flight_fact/cli'
 
-    Dir.chdir(ENV.fetch('FLIGHT_CWD','.'))
-    OpenFlight.set_standard_env rescue nil
-    FlightFact::CLI.run(*args)
+    # Runs the command within the original directory
+    Dir.chdir(ENV.fetch('FLIGHT_CWD', '.')) do
+      OpenFlight.set_standard_env rescue nil
+      FlightFact::CLI.run(*args)
+    end
   end
 rescue Interrupt
   if Kernel.const_defined?(:Paint)
