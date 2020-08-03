@@ -68,7 +68,7 @@ module FlightFact
     ##
     #
     def asset_name=(name)
-      if Config::CACHE.unresolved_asset_name.to_s != name.to_s
+      if @asset_id != true || Config::CACHE.unresolved_asset_name.to_s != name.to_s
         @asset_name = name
         @asset_id = true
         @main_changed = true
@@ -111,6 +111,16 @@ module FlightFact
       if asset_id == true && asset_name
         @asset_id = Config::CACHE.fetch_asset_id_by_name(asset_name)
         @main_changed = true
+
+        # Rerun the validation with the new ID
+        validate
+
+        # Notify the user of the change in mode
+        msg = <<~DESC.chomp
+          Resolved '#{asset_name}' to ID '#{asset_id}'. Switching to ID mode...
+        DESC
+        $stderr.puts msg
+        Config::CACHE.logger.warn msg
       elsif asset_id == true
         raise InternalError, 'An unexpected error has occurred'
       elsif asset_id
