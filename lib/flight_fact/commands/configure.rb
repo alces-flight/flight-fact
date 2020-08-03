@@ -108,7 +108,7 @@ module FlightFact
       end
 
       def updater
-        @updater ||= ConfigUpdater.new.tap(&:assert_writable)
+        @updater ||= ConfigUpdater.new
       end
 
       def mask(jwt)
