@@ -37,6 +37,7 @@ gem 'faraday'
 gem 'faraday_middleware'
 gem 'paint'
 gem 'tty-prompt'
+gem 'jwt'
 gem 'xdg'
 
 group :development do
