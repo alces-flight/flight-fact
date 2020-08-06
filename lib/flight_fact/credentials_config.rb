@@ -40,6 +40,14 @@ module FlightFact
       !(jwt.nil? || jwt.empty?)
     end
 
+    def jwt=(value)
+      if value&.empty?
+        self.delete(:jwt)
+      else
+        self[:jwt] = value
+      end
+    end
+
     def headers
       {
         'Accept' => 'application/json',

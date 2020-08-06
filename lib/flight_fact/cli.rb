@@ -67,7 +67,7 @@ module FlightFact
     end
 
     program :application, 'Flight Fact'
-    program :name, Config::CACHE.app_name!
+    program :name, Config::CACHE.app_name
     program :version, "v#{FlightFact::VERSION}"
     program :description, 'Manage Alces Flight Center asset metadata entries'
     program :help_paging, false
