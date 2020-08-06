@@ -26,8 +26,6 @@
 #==============================================================================
 
 require 'paint'
-require 'csv'
-require 'stringio'
 
 module FlightFact
   module Commands
@@ -36,6 +34,9 @@ module FlightFact
         data = request_fact
         if data.empty?
           $stderr.puts 'No fact entries found!'
+        elsif opts.keys_only?
+          keys = data.keys.map { |k| $stdout.tty? ? Paint[k, '#2794d8'] : k }
+          puts keys.join("\n")
         else
           puts render(data)
         end
@@ -58,12 +59,10 @@ module FlightFact
             "#{header} #{value}"
           end.join("\n")
         else
-          io = StringIO.new
-          csv = CSV.new(io, col_sep: "\t")
-          csv << data.keys
-          csv << data.values
-          io.rewind
-          io.read
+          str = data.reduce('') do |memo,(key, value)|
+            memo << "\n#{key}\t#{value}"
+          end
+          str[1..-1] # Strips the leading new line
         end
       end
     end

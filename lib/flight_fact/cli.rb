@@ -79,6 +79,7 @@ module FlightFact
 
     create_command('list') do |c|
       c.summary = 'View all fact entries'
+      c.slop.bool '--keys-only', 'Return the known keys without the associated values'
     end
 
     create_command('get', 'KEY') do |c|
