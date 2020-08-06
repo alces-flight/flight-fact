@@ -75,11 +75,6 @@ module FlightFact
     create_command('configure', auto_asset: false) do |c|
       c.summary = 'Initial application setup'
       c.slop.string '--jwt', "Update the API access token. Unset with empty string: ''"
-      c.slop.string '--asset', <<~DESC.chomp
-        Update the default asset by name; unless combined with --id. Unset with empty string: ''
-      DESC
-      c.slop.bool   '--id', 'Toggles the --asset input to be the ID'
-      c.slop.bool   '--validate', 'Check the application has been configured correctly'
     end
 
     create_command('list') do |c|
