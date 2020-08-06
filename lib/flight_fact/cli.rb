@@ -41,7 +41,7 @@ module FlightFact
 
     def self.create_command(name, args_str = '', auto_asset: true)
       command(name) do |c|
-        if auto_asset && !Config::CACHE.static_asset?
+        if auto_asset && !Config::CACHE.asset_id?
           c.syntax = "#{program :name} #{name} ASSET #{args_str}"
         else
           c.syntax = "#{program :name} #{name} #{args_str}"

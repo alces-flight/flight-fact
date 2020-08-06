@@ -68,8 +68,15 @@ module FlightFact
         value.nil? ? bang_nil_result : value
       end
 
-      # Define the truthiness method
-      define_method(:"#{sym}?") { send(sym) ? true : false }
+      # Define the truthiness method as not empty and not nil
+      define_method(:"#{sym}?") do
+        value = send(sym)
+        if value.respond_to?(:empty?)
+          !value.empty?
+        else
+          !value.nil?
+        end
+      end
     end
 
     def self.xdg
@@ -124,30 +131,6 @@ module FlightFact
           #{Paint[cmd, :yellow]}
         ERROR
       end
-    end
-
-    ##
-    # Determines if the application is in static/ single asset mode
-    def static_asset?
-      ![nil, 'nil', false, 'false', ''].include? asset_id
-    end
-
-    ##
-    # DEPRECATED: Use static_asset?
-    def explicit_static_asset?
-      static_asset?
-    end
-
-    ##
-    # DEPRECATED: Implicit static asset are not supported!
-    def implicit_static_asset?
-      false
-    end
-
-    ##
-    # DEPRECATED: Use asset_id
-    def resolve_asset_id
-      self.asset_id
     end
 
     ##

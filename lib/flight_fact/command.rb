@@ -85,8 +85,8 @@ module FlightFact
     def asset_id
       @asset_id ||= if args_asset
         Config::CACHE.fetch_asset_id_by_name(args_asset)
-      elsif id = Config::CACHE.resolve_asset_id
-        id
+      elsif Config::CACHE.asset_id?
+        Config::CACHE.asset_id
       else
         raise InternalError, <<~ERROR.chomp
           An unexpected error has occurred!
