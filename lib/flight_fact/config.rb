@@ -129,7 +129,7 @@ module FlightFact
     ##
     # Determines if the application is in static/ single asset mode
     def static_asset?
-      ![nil, 'nil', false, 'false', ''].include? static_asset_id
+      ![nil, 'nil', false, 'false', ''].include? asset_id
     end
 
     ##
@@ -141,12 +141,12 @@ module FlightFact
     ##
     # Determines if the asset ID should be resolved from the unresolved_asset_name
     def implicit_static_asset?
-      [true, 'true'].include?(static_asset_id)
+      [true, 'true'].include?(asset_id)
     end
 
     ##
-    # Interprets the static_asset_id and unresolved_asset_name as a single
-    # input. It will reset the static_asset_id if it successfully resolves
+    # Interprets the asset_id and unresolved_asset_name as a single
+    # input. It will reset the asset_id if it successfully resolves
     # the name
     #
     # NOTE: This method may error, it must not be used before the error
@@ -155,10 +155,10 @@ module FlightFact
       if implicit_static_asset?
         # Try and resolve the asset id from unresolved_asset_name
         logger.info 'Attempting to resolve the static asset ID'
-        self.static_asset_id = fetch_asset_id_by_name(self.unresolved_asset_name).to_s
+        self.asset_id = fetch_asset_id_by_name(self.unresolved_asset_name).to_s
       elsif static_asset?
         # Use the static ID from the config
-        static_asset_id.to_s
+        asset_id.to_s
       else
         # Multi Asset Mode - Returns nil
         nil

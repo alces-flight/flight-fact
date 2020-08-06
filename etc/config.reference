@@ -53,12 +53,12 @@ config :api_prefix, default: 'v1'
 # CLI to toggle into single asset mode.
 #
 # By default the application will attempt to determine this ID from the
-# "unresolved asset name". This corresponds to a static_asset_id value of: true
+# "unresolved asset name". This corresponds to a asset_id value of: true
 #
 # The static asset ID must be explicitly unset to put it in multi-asset mode.
 # This corresponds to values of: false, nil, or empty string.
 # ==============================================================================
-config :static_asset_id, default: true, required: false
+config :asset_id, default: true, required: false
 
 # ==============================================================================
 # Unresolved Asset Name
