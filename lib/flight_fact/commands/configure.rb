@@ -42,73 +42,15 @@ module FlightFact
       end
 
       def run_interactive
-        # Prompt for the JWT
-        old_jwt_mask = mask(updater.jwt)
-        opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if updater.jwt }
-        new_jwt = prompt.ask 'Flight Center API token:', **opts
-        updater.jwt = new_jwt unless new_jwt == old_jwt_mask
-
-        validatable = prompt.select('How should the asset(s) be configured?') do |menu|
-          menu.instance_variable_set(:@cycle, true)
-          default = if Config::CACHE.implicit_static_asset?
-            2 # By name
-          elsif Config::CACHE.static_asset?
-            1 # By ID
-          else
-            3 # Multiple
-          end
-          menu.default default
-
-          # NOTE: These are order dependent so the default works
-          menu.choice 'Single asset by ID' do
-            opts = { required: true }.tap do |o|
-              o[:default] = Config::CACHE.static_asset_id if Config::CACHE.explicit_static_asset?
-            end
-            updater.asset_id = prompt.ask 'What is the asset ID?', **opts
-            true
-          end
-          menu.choice 'Single asset by name' do
-            updater.asset_name = prompt.ask('What is the asset name?', default: Config::CACHE.unresolved_asset_name)
-            true
-          end
-          menu.choice 'Multiple assets' do
-            updater.multi_asset_mode
-            false
-          end
-        end
-
-        # Prompts if the user wants to run the validator, disabled in multi mode
-        updater.validate if validatable && prompt.yes?('Do you wish to run the validation?', default: false)
-
-        updater.save
+        raise NotImplementedError
       end
 
       def run_non_interactive
-        if opts.jwt && opts.jwt.empty?
-          updater.jwt = nil
-        elsif opts.jwt
-          updater.jwt = opts.jwt
-        end
-
-        if opts.asset && opts.asset.empty?
-          updater.multi_asset_mode
-        elsif opts.asset && opts.id
-          updater.asset_id = opts.asset
-        elsif opts.asset
-          updater.asset_name = opts.asset
-        end
-
-        updater.validate if opts.validate
-
-        updater.save
+        raise NotImplementedError
       end
 
       def prompt
         @prompt ||= TTY::Prompt.new
-      end
-
-      def updater
-        @updater ||= ConfigUpdater.new
       end
 
       def mask(jwt)
