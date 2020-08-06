@@ -48,28 +48,17 @@ config :base_url, default: 'https://center.alces-flight.com/api'
 config :api_prefix, default: 'v1'
 
 # ==============================================================================
-# Static Asset ID
-# Hard set the tool to be configured for a particular asset. This will cause the
-# CLI to toggle into single asset mode.
+# Asset ID
+# Hard set the tool to be configured for a single particular asset. This will
+# remove the external dependency on `flight-asset`. However it will also remove
+# the 'ASSET' positional argument from the CLI.
 #
-# By default the application will attempt to determine this ID from the
-# "unresolved asset name". This corresponds to a asset_id value of: true
+# In order to remove the dependency on `flight-asset`, the asset ID is required.
+# As of `flight-asset v1.1.2` the following commands will resolve the ID:
 #
-# The static asset ID must be explicitly unset to put it in multi-asset mode.
-# This corresponds to values of: false, nil, or empty string.
+# flight asset show ASSET_NAME --verbose | cut -f 6
 # ==============================================================================
-config :asset_id, default: true, required: false
-
-# ==============================================================================
-# Unresolved Asset Name
-# This sometimes stores the "name" of the asset specified by the static ID.
-# However there are no hard checks to ensure this value is correct and such
-# should be viewed with scepticism.
-#
-# The unresolved name is primarily used to easy the configuration process,
-# before the ID has been set.
-# ==============================================================================
-config :unresolved_asset_name, default: ->() { `hostname --short`.chomp }
+config :asset_id, required: false, transform_with: ->(v) { v.to_s }
 
 # ==============================================================================
 # Config Path

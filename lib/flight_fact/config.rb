@@ -133,36 +133,21 @@ module FlightFact
     end
 
     ##
-    # Determines if the asset ID has been explicitly set
+    # DEPRECATED: Use static_asset?
     def explicit_static_asset?
-      static_asset? && !implicit_static_asset?
+      static_asset?
     end
 
     ##
-    # Determines if the asset ID should be resolved from the unresolved_asset_name
+    # DEPRECATED: Implicit static asset are not supported!
     def implicit_static_asset?
-      [true, 'true'].include?(asset_id)
+      false
     end
 
     ##
-    # Interprets the asset_id and unresolved_asset_name as a single
-    # input. It will reset the asset_id if it successfully resolves
-    # the name
-    #
-    # NOTE: This method may error, it must not be used before the error
-    #       handler has started
+    # DEPRECATED: Use asset_id
     def resolve_asset_id
-      if implicit_static_asset?
-        # Try and resolve the asset id from unresolved_asset_name
-        logger.info 'Attempting to resolve the static asset ID'
-        self.asset_id = fetch_asset_id_by_name(self.unresolved_asset_name).to_s
-      elsif static_asset?
-        # Use the static ID from the config
-        asset_id.to_s
-      else
-        # Multi Asset Mode - Returns nil
-        nil
-      end
+      self.asset_id
     end
 
     ##
