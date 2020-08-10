@@ -103,7 +103,10 @@ module FlightFact
       File.write path, YAML.dump(credentials.to_h)
     end
 
-    def key_url(key)
+    def key_url(key_with_padding)
+      # Removes the trailing and leading whitespace (aka padding)
+      key = key_with_padding.strip.lstrip
+
       # Prevent the key exceeding the maximum length
       raise InputError, <<~ERROR.chomp if key.length > Config::CACHE.max_key_length
         The following key exceeds the maximum length: #{key[0..10]}...
