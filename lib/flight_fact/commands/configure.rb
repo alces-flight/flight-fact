@@ -45,11 +45,13 @@ module FlightFact
         opts = { required: true }.tap { |o| o[:default] = old_jwt_mask if credentials.jwt }
         new_jwt = prompt.ask 'Flight Center API token:', **opts
         credentials.jwt = new_jwt unless old_jwt_mask == new_jwt
+        FileUtils.mkdir_p File.dirname(Config::CACHE.credentials_path)
         File.write Config::CACHE.credentials_path, YAML.dump(credentials.to_h)
       end
 
       def run_non_interactive
         credentials.jwt = opts.jwt
+        FileUtils.mkdir_p File.dirname(Config::CACHE.credentials_path)
         File.write Config::CACHE.credentials_path, YAML.dump(credentials.to_h)
       end
 
