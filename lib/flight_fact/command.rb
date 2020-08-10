@@ -113,23 +113,12 @@ module FlightFact
         The maximum length is #{Config::CACHE.max_key_length} characters
       ERROR
 
-      # Splits on white space characters without removing them
-      # NOTE: All values but the last end with a single white space character
-      #       This is to allow the correct encoding to be used per space character
-      key_parts = key.split(/(?<=\s)/)
-      last_part = key_parts.pop
+      # Percent encode the string ensuring "space" becomes %20 and "." becomes %2E
+      encoded = URI.encode_www_form_component(key)
+                   .gsub('.', '%2E')
+                   .gsub('+', '%20')
 
-      # Forms a 2D array of key parts and their corresponding white space character
-      # NOTE: The last part does not have a corresponding white space character
-      parts_2d = key_parts.map { |k| [k[0..-2], k[-1]] }
-      parts_2d << [last_part, '']
-
-      # Encodes the non-white space and white space character different, because ruby ¯\_(ツ)_/¯
-      encoded = parts_2d.map do |non_white, white|
-        [URI.encode_www_form_component(non_white).gsub('.', '%2E'), URI.encode(white)]
-      end.flatten.join
-
-      # Uses the now encoded character
+      # Uses the now encoded key
       File.join('assets', asset_id, 'metadata', encoded)
     end
 
