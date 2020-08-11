@@ -108,10 +108,12 @@ module FlightFact
     # The method DOES NOT USE this object as it's credentials. It integrates
     # with 'flight-asset' which must be configured independently.
     def fetch_asset_id_by_name(name)
-      cmd = "#{asset_command} show #{name}"
+      parts = [*asset_command.split(' '), 'show', name]
+      # NOTE: This is not literally ran for security reasons
+      cmd = "#{asset_command} show #{name.include?(' ') ? "\"#{name}\"" : name}"
       logger.info "Running: #{cmd}"
       stdout, stderr, status = Bundler.with_unbundled_env do
-        Open3.capture3(*cmd.split(' '))
+        Open3.capture3(*parts)
       end
       if status.exitstatus == 0
         logger.info "Flight Asset: #{status}"
