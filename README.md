@@ -4,7 +4,7 @@ Manage Alces Flight Center Metedata
 
 ## Overview
 
-Update metadata entries associated with an Flight Center Asset
+Update metadata entries associated with an Alces Flight Center Asset
 
 ## Installation
 
@@ -37,7 +37,7 @@ The `configure` command will step you through setting the API access token and d
 
 ```
 $ bin/fact configure
-Flight Center API token: ************************
+Alces Flight Center API token: ************************
 Define the default asset by ID? No
 Define the default asset by name? Yes
 Default Asset Name:
